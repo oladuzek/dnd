@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
 <title>Мультивселенная - Карты миров</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=MedievalSharp&display=swap');
@@ -148,12 +148,11 @@
   #drawCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
   #drawCanvas.active { pointer-events: auto; cursor: crosshair; }
 
-  .city-pin { position: absolute; transform: translate(-50%, -100%) scale(0.8); display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; z-index: 10; pointer-events: auto; }
-  .city-pin:hover { transform: translate(-50%, -100%) scale(1.15); z-index: 20; }
-  .pin-icon { font-size: 2.5rem; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(circle, rgba(42, 48, 56, 0.8) 0%, transparent 70%); box-shadow: 0 0 15px rgba(0,0,0,0.8); filter: drop-shadow(0 0 10px var(--accent-glow)); transition: filter 0.2s; }
-  .city-pin:hover .pin-icon { filter: drop-shadow(0 0 20px rgba(168, 32, 32, 0.8)); }
+  /* Иконка города */
+  .city-pin { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 10; pointer-events: auto; }
+  .pin-icon { font-size: 1.5rem; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle, rgba(42, 48, 56, 0.8) 0%, transparent 70%); box-shadow: 0 0 10px rgba(0,0,0,0.8); filter: drop-shadow(0 0 5px var(--accent-glow)); }
   .pin-icon img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid var(--iron-light); }
-  .pin-label { background: rgba(20, 24, 28, 0.95); color: var(--accent); padding: 5px 15px; font-family: var(--font-title); font-size: 0.9rem; border: 1px solid var(--iron-light); white-space: nowrap; margin-top: 8px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1); letter-spacing: 1px; }
+  .pin-label { background: rgba(20, 24, 28, 0.95); color: var(--accent); padding: 3px 10px; font-family: var(--font-title); font-size: 0.8rem; border: 1px solid var(--iron-light); white-space: nowrap; margin-top: 4px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1); letter-spacing: 1px; }
 
   .quick-delete-city { position: absolute; top: -10px; right: -10px; background: var(--blood); color: #fff; border: 1px solid var(--iron-light); border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 30; font-family: var(--font-title); }
   .city-pin:hover .quick-delete-city { display: flex; }
@@ -214,7 +213,7 @@
   .draw-actions { display: flex; gap: 10px; margin-top: 5px; }
   .draw-actions .btn { min-width: 0; flex: 1; padding: 0.5rem 0; font-size: 1rem; justify-content: center; }
 
-  /* МОДАЛКИ ВЫНЕСЕНЫ НАРУЖУ */
+  /* МОДАЛКИ */
   .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 5, 5, 0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
   .modal-overlay.open { display: flex; }
   .modal { background: var(--modal-bg); padding: 2rem 1.5rem; border: 1px solid var(--iron-light); width: 600px; max-width: 100%; max-height: 95vh; overflow-y: auto; position: relative; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
@@ -1142,17 +1141,20 @@
     }, { passive: false });
 
     function zoomToCity(city) {
-      const vw = viewport.clientWidth; const vh = viewport.clientHeight;
-      const isMobile = vw <= 768;
+      const vw = viewport.clientWidth; 
+      const vh = viewport.clientHeight;
+      const isMobile = window.innerWidth <= 768;
       const offsetX = isMobile ? 0 : 200; 
-      const offsetY = isMobile ? 100 : 0; 
+      const offsetY = 0; 
       const scale = 2.5;
       
+      if (!mapWrapper.clientWidth) return;
+
       const cityX = mapWrapper.offsetLeft + (city.x / 100) * mapWrapper.clientWidth; 
       const cityY = mapWrapper.offsetTop + (city.y / 100) * mapWrapper.clientHeight;
       
       let tx = ((vw - offsetX) / 2) - (cityX * scale);
-      let ty = ((vh + offsetY) / 2) - (cityY * scale);
+      let ty = ((vh - offsetY) / 2) - (cityY * scale);
       
       tx = Math.min(0, Math.max(vw - (vw * scale), tx));
       ty = Math.min(0, Math.max(vh - (vh * scale), ty));
