@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Мультивселенная - Карты миров</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=MedievalSharp&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  :root {
+    --bg-base: #050506; --panel-bg: rgba(15, 16, 19, 0.98); --modal-bg: rgba(10, 11, 14, 0.98);
+    --iron: #2a3038; --iron-light: #4a5563; --steel: #6c7c8c; --accent: #a0b8c8;
+    --accent-glow: rgba(160, 184, 200, 0.3); --blood: #6b1414; --blood-light: #a82020;
+    --text: #b0bcc2; --border: #1c2026;
+    --font-main: 'EB Garamond', 'Times New Roman', serif; 
+    --font-title: 'Cinzel', serif; 
+    --font-fantasy: 'MedievalSharp', cursive;
+    --particle-color-1: rgba(160, 184, 200, 0.6); --particle-color-2: rgba(168, 32, 32, 0.5); --particle-color-3: rgba(255, 255, 255, 0.4);
+    --bg-radial-1: rgba(40, 25, 45, 0.4); --bg-radial-2: rgba(25, 30, 40, 0.5);
+  }
+
+  body.theme-north {
+    --bg-base: #060b14; --panel-bg: rgba(10, 18, 30, 0.95); --iron: #1c2a3a; --iron-light: #2e4a66;
+    --steel: #4a7a9a; --accent: #a0d4f0; --accent-glow: rgba(160, 212, 240, 0.4);
+    --blood: #1e4d6b; --blood-light: #3a88b8; --text: #d0e0f0; --border: #14202e;
+    --particle-color-1: rgba(200, 230, 255, 0.8); --particle-color-2: rgba(255, 255, 255, 0.5); --particle-color-3: rgba(100, 150, 200, 0.4);
+    --bg-radial-1: rgba(20, 40, 70, 0.6); --bg-radial-2: rgba(10, 20, 35, 0.8);
+  }
+
+  body.theme-desert {
+    --bg-base: #140f0a; --panel-bg: rgba(25, 18, 12, 0.95); --iron: #3a2a1a; --iron-light: #6a4a2a;
+    --steel: #9a6a3a; --accent: #e6b860; --accent-glow: rgba(230, 184, 96, 0.4);
+    --blood: #7a2a1a; --blood-light: #b8442a; --text: #e0c8a8; --border: #2a1e14;
+    --particle-color-1: rgba(230, 200, 120, 0.6); --particle-color-2: rgba(180, 120, 50, 0.5); --particle-color-3: rgba(100, 80, 60, 0.6);
+    --bg-radial-1: rgba(60, 40, 20, 0.6); --bg-radial-2: rgba(30, 20, 10, 0.8);
+  }
+
+  body { 
+    font-family: var(--font-main); color: var(--text); height: 100vh; height: 100dvh;
+    overflow: hidden; overscroll-behavior: none; background-color: var(--bg-base);
+    position: relative; transition: background-color 0.8s ease;
+  }
+
+  body::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 50% 50%, var(--bg-radial-1) 0%, transparent 60%),
+                radial-gradient(circle at 80% 20%, var(--bg-radial-2) 0%, transparent 50%);
+    animation: pulseBg 10s ease-in-out infinite alternate; z-index: -2; pointer-events: none; transition: background 0.8s ease;
+  }
+
+  @keyframes pulseBg { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 1; transform: scale(1.05); } }
+
+  .particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+  .particle { position: absolute; border-radius: 50%; animation: floatUp linear infinite; }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    20% { opacity: 1; } 80% { opacity: 1; }
+    100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+  }
+
+  #worldsScreen {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 50; padding: 40px; overflow-y: auto;
+  }
+
+  .worlds-title {
+    font-family: var(--font-title); font-size: 3rem; color: #fff;
+    text-shadow: 0 0 20px var(--accent-glow), 0 4px 10px rgba(0,0,0,0.9);
+    margin-bottom: 3rem; text-align: center; letter-spacing: 2px;
+  }
+
+  .worlds-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem; width: 100%; max-width: 1200px; margin-bottom: 3rem;
+  }
+
+  .world-card {
+    background: var(--panel-bg); border: 1px solid var(--iron-light);
+    border-radius: 12px; overflow: hidden; cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    display: flex; flex-direction: column; position: relative;
+    height: 380px;
+  }
+  .world-card:hover {
+    transform: translateY(-10px); border-color: var(--accent);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.8), 0 0 20px var(--accent-glow);
+  }
+
+  .world-card-img {
+    height: 180px; background-size: cover; background-position: center;
+    border-bottom: 1px solid var(--iron-light); position: relative; flex-shrink: 0;
+  }
+  .world-card-img::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, transparent 50%, var(--panel-bg) 100%);
+  }
+
+  .world-card-content { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .world-card-title { font-family: var(--font-title); font-size: 1.5rem; color: #fff; margin-bottom: 0.5rem; }
+  .world-card-desc { font-size: 1rem; color: var(--text); opacity: 0.8; flex: 1; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+  .world-card-stats { font-size: 0.85rem; color: var(--accent); display: flex; gap: 15px; flex-shrink: 0; }
+
+  .world-card-delete {
+    position: absolute; top: 10px; right: 10px; background: rgba(107, 20, 20, 0.8);
+    border: 1px solid var(--blood); color: #fff; width: 30px; height: 30px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity 0.2s; z-index: 10;
+  }
+  .world-card:hover .world-card-delete { opacity: 1; }
+  .world-card-delete:hover { background: var(--blood-light); }
+
+  .add-world-btn {
+    background: linear-gradient(180deg, var(--iron-light), var(--iron));
+    border: 2px dashed var(--accent); color: var(--accent);
+    padding: 1.5rem 3rem; border-radius: 12px; font-family: var(--font-title);
+    font-size: 1.2rem; cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+    letter-spacing: 2px; display: flex; align-items: center; gap: 15px;
+  }
+  .add-world-btn:hover { background: var(--iron); color: #fff; box-shadow: 0 0 20px var(--accent-glow); }
+
+  #mapInterface { display: none; height: 100%; width: 100%; position: relative; }
+  
+  .top-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 60px; background: var(--panel-bg);
+    border-bottom: 1px solid var(--iron-light); display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+  }
+  .current-world-name { font-family: var(--font-title); font-size: 1.5rem; color: #fff; display: flex; align-items: center; gap: 10px; }
+  .back-to-worlds-btn {
+    background: transparent; border: 1px solid var(--iron-light); color: var(--text);
+    padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-family: var(--font-title);
+    transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+  }
+  .back-to-worlds-btn:hover { background: var(--iron); color: #fff; border-color: var(--accent); }
+
+  .map-viewport { position: absolute; top: 60px; left: 0; right: 0; bottom: 0; overflow: hidden; background: transparent; cursor: grab; touch-action: none; z-index: 1; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
+  .map-viewport.grabbing { cursor: grabbing; } .map-viewport.master-mode { cursor: crosshair; }
+  .map-viewport.shifted { transform: translateX(-30%); }
+  
+  .map-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: transform 0.3s ease-out; transform-origin: 0 0; display: flex; align-items: center; justify-content: center; }
+  .map-world.dragging { transition: none; }
+  
+  #mapWrapper { position: relative; display: block; max-width: 100%; max-height: 100%; pointer-events: none; }
+  #mapBg { max-width: 100%; max-height: 100%; display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; opacity: 0; transition: opacity 0.5s; filter: brightness(0.8) contrast(1.2); pointer-events: none; }
+  #drawCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+  #drawCanvas.active { pointer-events: auto; cursor: crosshair; }
+
+  .city-pin { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; z-index: 10; pointer-events: auto; }
+  .city-pin:hover { transform: translate(-50%, -100%) scale(1.15); z-index: 20; }
+  .pin-icon { font-size: 2.5rem; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(circle, rgba(42, 48, 56, 0.8) 0%, transparent 70%); box-shadow: 0 0 15px rgba(0,0,0,0.8); filter: drop-shadow(0 0 10px var(--accent-glow)); transition: filter 0.2s; }
+  .city-pin:hover .pin-icon { filter: drop-shadow(0 0 20px rgba(168, 32, 32, 0.8)); }
+  .pin-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid var(--iron-light); }
+  .pin-label { background: rgba(20, 24, 28, 0.95); color: var(--accent); padding: 5px 15px; font-family: var(--font-title); font-size: 0.9rem; border: 1px solid var(--iron-light); white-space: nowrap; margin-top: 8px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1); letter-spacing: 1px; }
+
+  .quick-delete-city { position: absolute; top: -10px; right: -10px; background: var(--blood); color: #fff; border: 1px solid var(--iron-light); border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 30; font-family: var(--font-title); }
+  .city-pin:hover .quick-delete-city { display: flex; }
+  .quick-delete-city:hover { background: var(--blood-light); box-shadow: 0 0 15px var(--blood); }
+
+  .city-panel { position: absolute; top: 60px; right: 0; width: 400px; height: calc(100% - 60px); background: var(--panel-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-left: 2px solid rgba(74, 85, 99, 0.8); transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); display: flex; flex-direction: column; z-index: 999; box-shadow: -15px 0 40px rgba(0,0,0,0.9); }
+  .city-panel.open { transform: translateX(0); }
+  .panel-header { padding: 2.5rem 1.5rem 1.5rem; border-bottom: 1px solid rgba(74, 85, 99, 0.3); position: relative; }
+  .close-btn { position: absolute; top: 1.5rem; right: 1.5rem; z-index: 1000; background: var(--iron); border: 2px solid var(--iron-light); color: var(--accent); font-size: 1.2rem; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.8); }
+  .close-btn:hover { color: #fff; background: var(--blood); border-color: var(--blood-light); box-shadow: 0 0 15px rgba(168, 32, 32, 0.8); }
+  .panel-title { font-family: var(--font-title); font-weight: 900; font-size: 1.8rem; color: #fff; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); padding-right: 40px; display: flex; align-items: center; gap: 15px; }
+  .panel-title .title-icon img { width: 48px; height: 48px; object-fit: cover; border-radius: 50%; border: 2px solid var(--iron-light); }
+  .panel-desc { color: var(--text); font-size: 1.1rem; line-height: 1.5; margin-bottom: 1.5rem; font-style: italic; opacity: 0.8; }
+  .panel-actions { display: flex; gap: 12px; position: relative; z-index: 1000; }
+  .edit-btn, .delete-city-btn { background: linear-gradient(180deg, var(--iron-light), var(--iron)); border: 1px solid var(--iron-light); color: var(--accent); padding: 0.6rem 1rem; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; flex: 1; font-family: var(--font-title); letter-spacing: 1px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+  .edit-btn:hover { border-color: var(--accent); color: #fff; }
+  .delete-city-btn { border-color: var(--blood); color: var(--blood-light); }
+  .delete-city-btn:hover { background: var(--blood); color: #fff; border-color: var(--blood-light); }
+
+  .npc-list { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+  .npc-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 1rem; display: flex; gap: 1rem; position: relative; transition: all 0.2s; border-radius: 6px; cursor: pointer; }
+  .npc-card:hover { border-color: var(--steel); background: rgba(20, 24, 28, 0.6); transform: translateX(-3px); }
+  .npc-avatar { width: 60px; height: 60px; background: #000; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; border: 2px solid var(--iron); overflow: hidden; border-radius: 50%; }
+  .npc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .npc-info h3 { color: #d1dae2; font-size: 1.3rem; margin-bottom: 0.2rem; font-family: var(--font-title); }
+  .npc-info p { font-size: 1rem; color: var(--text); line-height: 1.4; opacity: 0.8; }
+  .delete-npc { position: absolute; top: 10px; right: 10px; background: transparent; border: 1px solid var(--blood); color: var(--blood-light); cursor: pointer; padding: 2px 8px; font-size: 0.75rem; border-radius: 3px; font-family: var(--font-title); transition: all 0.2s; }
+  .delete-npc:hover { background: var(--blood); color: #fff; }
+
+  .controls { position: absolute; left: 20px; top: 80px; display: flex; flex-direction: column; gap: 10px; z-index: 30; width: 220px; }
+  .mobile-menu-btn { display: none; background: rgba(20, 24, 28, 0.9); border: 1px solid var(--iron-light); color: var(--accent); font-size: 1.5rem; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 40; }
+  .desktop-menu { display: flex; flex-direction: column; gap: 10px; }
+  
+  .menu-group { background: var(--panel-bg); border: 1px solid var(--iron-light); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
+  .menu-group-header { padding: 0.8rem 1rem; font-family: var(--font-title); font-weight: 700; font-size: 0.95rem; color: var(--accent); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; background: linear-gradient(180deg, var(--iron-light) 0%, var(--iron) 100%); user-select: none; }
+  .menu-group-header:hover { background: linear-gradient(180deg, var(--iron) 0%, var(--bg-base) 100%); color: #fff; }
+  .menu-group-header .arrow { font-size: 0.7rem; transition: transform 0.3s; }
+  .menu-group.open .menu-group-header { border-bottom: 1px solid var(--border); }
+  .menu-group.open .menu-group-header .arrow { transform: rotate(180deg); }
+  .menu-group-content { display: none; flex-direction: column; padding: 8px; gap: 8px; background: var(--panel-bg); }
+  .menu-group.open .menu-group-content { display: flex; }
+
+  .btn { background: linear-gradient(180deg, var(--iron-light) 0%, var(--iron) 50%, var(--bg-base) 100%); border: 1px solid var(--iron-light); color: var(--accent); padding: 0.6rem 0.8rem; cursor: pointer; font-family: var(--font-title); font-weight: 700; font-size: 0.85rem; letter-spacing: 1px; transition: all 0.2s; display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
+  .btn:hover { background: linear-gradient(180deg, var(--iron) 0%, var(--bg-base) 100%); color: #fff; border-color: var(--accent); } 
+  .btn.active { background: linear-gradient(180deg, var(--blood-light) 0%, var(--blood) 100%); color: #fff; border-color: var(--blood-light); box-shadow: 0 0 15px rgba(168, 32, 32, 0.4); }
+  .btn-icon { font-size: 1.1rem; }
+  #bgInput { display: none; }
+
+  .draw-controls { display: none; flex-direction: column; gap: 12px; background: var(--bg-base); padding: 15px; border: 1px solid var(--iron-light); width: 100%; border-radius: 6px; margin-top: 5px; }
+  .draw-controls.active { display: flex; }
+  .color-picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .color-opt { width: 100%; aspect-ratio: 1; cursor: pointer; border: 1px solid #000; transition: transform 0.1s; border-radius: 50%; }
+  .color-opt:hover { transform: scale(1.1); border-color: #fff; }
+  .color-opt.selected { border: 2px solid #fff; box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+  .brush-size-row { display: flex; align-items: center; gap: 10px; margin: 5px 0; }
+  .size-slider { flex: 1; accent-color: var(--accent); cursor: pointer; }
+  .brush-num-input { width: 45px; background: #050505; border: 1px solid var(--iron); color: var(--accent); padding: 4px; text-align: center; font-family: var(--font-title); font-size: 0.9rem; outline: none; border-radius: 4px; }
+  .draw-actions { display: flex; gap: 10px; margin-top: 5px; }
+  .draw-actions .btn { min-width: 0; flex: 1; padding: 0.5rem 0; font-size: 1rem; justify-content: center; }
+
+  /* МОДАЛКИ ВЫНЕСЕНЫ НАРУЖУ */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 5, 5, 0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--modal-bg); padding: 2rem 1.5rem; border: 1px solid var(--iron-light); width: 600px; max-width: 100%; max-height: 95vh; overflow-y: auto; position: relative; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
+  .modal h2 { color: #fff; margin-bottom: 1.5rem; font-family: var(--font-title); font-size: 1.6rem; text-align: center; letter-spacing: 1px; }
+  .form-group { margin-bottom: 1rem; } 
+  .form-group label { display: block; font-size: 0.9rem; color: var(--accent); margin-bottom: 0.4rem; font-family: var(--font-title); }
+  .modal input[type="text"], .modal textarea, .modal select { width: 100%; background: #050505; border: 1px solid var(--iron); color: var(--text); padding: 0.8rem; font-family: var(--font-main); font-size: 1.1rem; outline: none; border-radius: 4px; }
+  .modal input[type="text"]:focus, .modal textarea:focus, .modal select:focus { border-color: var(--iron-light); } 
+  .modal textarea { resize: vertical; height: 120px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem; } 
+  .modal-actions .btn { padding: 0.7rem 1rem; flex: 1; justify-content: center; }
+  #saveModal { background: linear-gradient(180deg, var(--blood-light) 0%, var(--blood) 50%, #3a0a0a 100%); color: #fff; border-color: var(--blood-light); }
+
+  .icon-picker { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: #050505; border: 1px solid var(--iron); padding: 10px; max-height: 120px; overflow-y: auto; margin-bottom: 10px; border-radius: 4px; }
+  .icon-option { font-size: 1.2rem; background: #111316; border: 1px solid #000; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 35px; transition: all 0.15s; border-radius: 4px; }
+  .icon-option:hover { background: var(--iron); } 
+  .icon-option.selected { border-color: #fff; background: var(--iron-light); }
+  
+  .upload-row { display: flex; gap: 10px; align-items: center; }
+  .upload-label { flex: 1; padding: 0.6rem; background: #111316; border: 1px dashed var(--iron-light); text-align: center; cursor: pointer; color: var(--accent); font-size: 0.9rem; font-family: var(--font-title); transition: all 0.2s; border-radius: 4px; }
+  .upload-label:hover { background: var(--iron); border-color: #fff; color: #fff; }
+  .upload-preview { width: 100%; height: 120px; border: 2px solid var(--iron-light); object-fit: cover; display: none; border-radius: 4px; margin-top: 10px; }
+
+  .edit-npc-list { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+  .edit-npc-item { display: flex; justify-content: space-between; align-items: center; background: #050505; padding: 0.5rem; margin-bottom: 0.5rem; border: 1px solid var(--iron); border-left: 3px solid var(--blood); font-size: 0.95rem; border-radius: 4px; } 
+  
+  #syncStatus { position: absolute; top: 80px; right: 20px; background: var(--panel-bg); color: var(--accent); padding: 8px 15px; font-size: 0.85rem; z-index: 50; border: 1px solid var(--iron-light); transition: opacity 0.5s; font-family: var(--font-title); border-radius: 4px; backdrop-filter: blur(5px); }
+  #saveBgBtn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: none; z-index: 40; background: linear-gradient(180deg, var(--blood-light) 0%, var(--blood) 100%); color: #fff; border-color: var(--blood-light); min-width: auto; border-radius: 50px; padding: 0.8rem 2rem; font-size: 0.95rem; box-shadow: 0 5px 20px rgba(0,0,0,0.6); }
+
+  #searchModal .modal, #allNpcModal .modal, #allItemsModal .modal, #createWorldModal .modal, #worldDescModal .modal { width: 850px; }
+  .search-item { background: rgba(0,0,0,0.5); border: 1px solid var(--border); padding: 1rem; margin-bottom: 0.8rem; cursor: pointer; transition: all 0.2s; border-radius: 6px; }
+  .search-item:hover { border-color: var(--iron-light); background: rgba(20, 24, 28, 0.8); }
+  .search-item .type { font-size: 0.75rem; color: var(--blood-light); text-transform: uppercase; margin-bottom: 0.3rem; display: block; font-family: var(--font-title); font-weight: bold; }
+  .search-item .title { font-weight: bold; font-size: 1.2rem; color: #fff; font-family: var(--font-title); }
+  .search-item .subtitle { font-size: 1rem; color: var(--text); margin-top: 5px; opacity: 0.8; }
+
+  .all-npc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; max-height: 60vh; overflow-y: auto; padding-right: 5px; }
+  .big-npc-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 1rem; display: flex; gap: 1rem; align-items: flex-start; transition: all 0.3s; border-radius: 8px; cursor: pointer; }
+  .big-npc-card:hover { border-color: var(--iron-light); background: rgba(20, 24, 28, 0.6); }
+  .big-npc-avatar { width: 80px; height: 80px; border: 2px solid var(--iron); background: #000; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; flex-shrink: 0; overflow: hidden; border-radius: 50%; }
+  .big-npc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .big-npc-info { flex: 1; }
+  .big-npc-info h3 { font-family: var(--font-title); color: #fff; font-size: 1.3rem; margin-bottom: 0.3rem; }
+  .big-npc-info .location { font-size: 0.9rem; color: var(--accent); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 5px; }
+  .big-npc-info p { font-size: 0.95rem; color: var(--text); line-height: 1.4; margin-bottom: 1rem; opacity: 0.8; }
+  .btn-go-to { background: var(--iron); border: 1px solid var(--iron-light); color: var(--accent); padding: 0.4rem 0.8rem; font-size: 0.85rem; cursor: pointer; font-family: var(--font-title); border-radius: 4px; }
+  .item-delete-btn { background: rgba(107, 20, 20, 0.3); border: 1px solid var(--blood); color: var(--blood-light); cursor: pointer; padding: 4px 10px; font-size: 0.85rem; font-family: var(--font-title); margin-top: 10px; border-radius: 4px; }
+  .item-delete-btn:hover { background: var(--blood); color: #fff; }
+
+  .full-card { position: fixed; top: 0; right: -100%; width: 50%; height: 100%; background: var(--modal-bg); border-left: 2px solid var(--iron-light); transition: right 0.5s cubic-bezier(0.25, 1, 0.5, 1); z-index: 2000; display: flex; flex-direction: column; box-shadow: -20px 0 60px rgba(0,0,0,0.9); }
+  .full-card.open { right: 0; }
+  .full-card-header { padding: 3rem 2rem 2rem; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, var(--iron) 0%, transparent 100%); }
+  .close-full { position: absolute; top: 2rem; right: 2rem; background: var(--iron); border: 2px solid var(--iron-light); color: var(--accent); font-size: 1.5rem; cursor: pointer; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; z-index: 10; }
+  .close-full:hover { background: var(--blood); border-color: var(--blood-light); color: #fff; }
+  .full-card-title { font-family: var(--font-title); font-size: 2.5rem; color: #fff; margin-bottom: 0.5rem; text-shadow: 0 4px 10px rgba(0,0,0,0.8); }
+  .full-card-sub { color: var(--accent); font-size: 1.2rem; font-family: var(--font-fantasy); }
+  .full-card-content { flex: 1; padding: 2rem; display: flex; gap: 2rem; overflow-y: auto; }
+  .full-card-avatar { width: 250px; height: 250px; border: 4px solid var(--iron-light); background: #000; border-radius: 50%; overflow: hidden; flex-shrink: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+  .full-card-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .full-card-avatar span { font-size: 8rem; display: flex; align-items: center; justify-content: center; height: 100%; }
+  .full-card-desc { font-size: 1.2rem; line-height: 1.6; color: var(--text); opacity: 0.9; }
+
+  .add-item-btn-big, .add-npc-btn-big { background: linear-gradient(180deg, var(--iron-light) 0%, var(--iron) 100%); border: 1px solid var(--iron-light); color: var(--accent); padding: 1rem; font-family: var(--font-title); font-size: 1rem; cursor: pointer; border-radius: 6px; text-align: center; transition: all 0.2s; margin-bottom: 1rem; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .add-item-btn-big:hover, .add-npc-btn-big:hover { background: linear-gradient(180deg, var(--iron) 0%, var(--bg-base) 100%); color: #fff; }
+
+  @media (max-width: 768px) {
+    .worlds-grid { grid-template-columns: 1fr; }
+    .top-bar { padding: 0 10px; }
+    .current-world-name { font-size: 1.1rem; }
+    .back-to-worlds-btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+    .map-viewport.shifted { transform: none; }
+    .full-card { width: 100%; right: -100%; }
+    .full-card.open { right: 0; }
+    .full-card-content { flex-direction: column; align-items: center; text-align: center; }
+    .full-card-avatar { width: 150px; height: 150px; }
+    .full-card-avatar span { font-size: 5rem; }
+    .city-panel { width: 100%; height: 80%; top: auto; bottom: 0; transform: translateY(100%); border-left: none; border-top: 2px solid var(--iron-light); border-radius: 20px 20px 0 0; z-index: 999; }
+    .city-panel.open { transform: translateY(0); }
+    .desktop-menu { display: none; position: fixed; top: 70px; left: 15px; background: var(--panel-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--iron-light); box-shadow: 0 10px 30px rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 35; max-height: 80vh; overflow-y: auto; width: 240px; }
+    .desktop-menu.show { display: flex; }
+    .mobile-menu-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 15px; left: 15px; }
+    .controls { left: 15px; top: 75px; width: 240px; }
+    .draw-controls { max-width: 100%; padding: 10px; }
+    .modal { padding: 1.5rem 1rem; width: 95%; border-radius: 16px; }
+    .modal-actions { flex-direction: column; gap: 10px; }
+    .modal-actions .btn { width: 100%; justify-content: center; }
+    .modal input[type="text"], .modal textarea { padding: 0.8rem; font-size: 1rem; }
+    .icon-picker { grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 5px; }
+    .icon-option { height: 35px; font-size: 1.2rem; }
+    .all-npc-grid { grid-template-columns: 1fr; gap: 0.8rem; } 
+    .big-npc-card { flex-direction: row; align-items: flex-start; padding: 0.8rem; }
+    .big-npc-avatar { width: 60px; height: 60px; font-size: 1.8rem; }
+    .big-npc-info h3 { font-size: 1.1rem; }
+    .big-npc-info p { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    #syncStatus { top: 75px; right: 15px; font-size: 0.7rem; padding: 5px 10px; }
+    #saveBgBtn { bottom: 15px; font-size: 0.9rem; padding: 0.6rem 1.2rem; width: auto; min-width: 80%; }
+  }
+</style>
+</head>
+<body class="theme-dark">
+
+  <div class="particles" id="particles"></div>
+
+  <!-- ЭКРАН ВЫБОРА МИРА -->
+  <div id="worldsScreen">
+    <h1 class="worlds-title">Выберите мир</h1>
+    <div class="worlds-grid" id="worldsGrid"></div>
+    <button class="add-world-btn" id="btnCreateWorld">➕ Создать новый мир</button>
+  </div>
+
+  <!-- ИНТЕРФЕЙС КАРТЫ -->
+  <div id="mapInterface">
+    <div class="top-bar">
+      <div class="current-world-name" id="currentWorldName">Название мира</div>
+      <button class="back-to-worlds-btn" id="btnBackToWorlds">← Сменить мир</button>
+    </div>
+
+    <div id="syncStatus">Подключение...</div>
+
+    <div class="map-viewport" id="viewport">
+      <div class="map-world" id="world">
+        <div id="mapWrapper">
+          <img id="mapBg" src="" alt="Карта" onload="onMapLoaded()">
+          <canvas id="drawCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="city-panel" id="cityPanel">
+      <div class="panel-header">
+        <button class="close-btn" id="closePanel" onclick="event.stopPropagation()">✕</button>
+        <div class="panel-title" id="cityTitle">Название</div>
+        <div class="panel-desc" id="cityDesc">Описание...</div>
+        <div class="panel-actions">
+          <button class="edit-btn" id="editCityBtn" onclick="event.stopPropagation()">Изменить</button>
+          <button class="delete-city-btn" id="deleteCityBtn" onclick="event.stopPropagation()">Сжечь</button>
+        </div>
+      </div>
+      <div class="npc-list" id="npcList"></div>
+    </div>
+
+    <div class="full-card" id="fullCard">
+      <div class="full-card-header">
+        <button class="close-full" id="closeFullCard">✕</button>
+        <div class="full-card-title" id="fullCardTitle">Имя</div>
+        <div class="full-card-sub" id="fullCardSub">Подзаголовок</div>
+      </div>
+      <div class="full-card-content">
+        <div class="full-card-avatar" id="fullCardAvatar"></div>
+        <div class="full-card-desc" id="fullCardDesc">Описание...</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+      <div class="desktop-menu" id="desktopMenu">
+        
+        <div class="menu-group open">
+          <div class="menu-group-header" onclick="toggleGroup(this)">
+            <span>🗺️ Мир</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="menu-group-content">
+            <button class="btn" id="showWorldDescBtn"><span class="btn-icon">📜</span> Описание мира</button>
+            <button class="btn" id="resetZoom"><span class="btn-icon">↩️</span> Назад</button>
+            <label class="btn" for="bgInput"><span class="btn-icon">🖼️</span> Своя карта</label>
+            <input type="file" id="bgInput" accept="image/*">
+          </div>
+        </div>
+
+        <div class="menu-group">
+          <div class="menu-group-header" onclick="toggleGroup(this)">
+            <span>📜 Информация</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="menu-group-content">
+            <button class="btn" id="openSearchBtn"><span class="btn-icon">🔍</span> Поиск</button>
+            <button class="btn" id="openAllNpcBtn"><span class="btn-icon">👥</span> Все NPC</button>
+            <button class="btn" id="openItemsBtn"><span class="btn-icon">📚</span> Справочник</button>
+          </div>
+        </div>
+
+        <div class="menu-group">
+          <div class="menu-group-header" onclick="toggleGroup(this)">
+            <span>⚙️ Редактор</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="menu-group-content">
+            <button class="btn" id="drawBtn"><span class="btn-icon">🖌️</span> Границы</button>
+            <button class="btn" id="modeBtn"><span class="btn-icon">🛠️</span> Режим: Вкл</button>
+            <div class="draw-controls" id="drawControls">
+              <div class="color-picker">
+                <div class="color-opt selected" style="background: rgba(107, 20, 20, 0.8);" data-color="rgba(107, 20, 20, 0.8)"></div>
+                <div class="color-opt" style="background: rgba(31, 58, 95, 0.8);" data-color="rgba(31, 58, 95, 0.8)"></div>
+                <div class="color-opt" style="background: rgba(46, 74, 36, 0.8);" data-color="rgba(46, 74, 36, 0.8)"></div>
+                <div class="color-opt" style="background: rgba(90, 80, 50, 0.8);" data-color="rgba(90, 80, 50, 0.8)"></div>
+                <div class="color-opt" style="background: rgba(88, 44, 88, 0.8);" data-color="rgba(88, 44, 88, 0.8)"></div>
+                <div class="color-opt" style="background: rgba(50, 50, 50, 0.8);" data-color="rgba(50, 50, 50, 0.8)"></div>
+                <div class="color-opt" style="background: rgba(0, 0, 0, 0.9);" data-color="rgba(0, 0, 0, 0.9)"></div>
+                <div class="color-opt" style="background: rgba(200, 200, 200, 0.8);" data-color="rgba(200, 200, 200, 0.8)"></div>
+              </div>
+              <label style="font-size: 0.8rem; color: var(--accent); margin-top: 5px; font-family: var(--font-title);">Размер кисти</label>
+              <div class="brush-size-row">
+                <input type="range" class="size-slider" id="brushSizeSlider" min="1" max="50" value="10">
+                <input type="number" class="brush-num-input" id="brushSizeNum" min="1" max="50" value="10">
+              </div>
+              <div class="draw-actions">
+                <button class="btn" id="undoBtn">↩️</button>
+                <button class="btn" id="clearDrawingBtn" style="color: var(--blood-light);">🗑️</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <button class="btn" id="saveBgBtn">Сохранить фон</button>
+
+  </div>
+
+  <!-- ВСЕ МОДАЛКИ ВЫНЕСЕНЫ СЮДА (НА УРОВЕНЬ BODY) -->
+
+  <!-- Модалка локации -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h2 id="modalTitle">Добавить локацию</h2>
+      <div class="form-group"><label>Название города</label><input type="text" id="inpCityName" placeholder="Например: Валирия"></div>
+      <div class="form-group"><label>Описание</label><textarea id="inpCityDesc" placeholder="Краткое описание..."></textarea></div>
+      <div class="form-group">
+        <label>Иконка города</label>
+        <div class="icon-picker" id="iconPicker"></div>
+        <div class="upload-row">
+          <label class="upload-label" for="cityPhotoInput">Загрузить фото</label>
+          <input type="file" id="cityPhotoInput" accept="image/*" style="display:none;">
+          <img class="upload-preview" id="cityPhotoPreview" src="" alt="">
+        </div>
+      </div>
+      <hr style="border-color: var(--border); margin: 1.5rem 0;">
+      <div class="form-group"><label>Добавить NPC (Имя)</label><input type="text" id="inpNpcName" placeholder="Имя NPC"></div>
+      <div class="form-group"><label>Описание NPC</label><input type="text" id="inpNpcDesc" placeholder="Кто он и чем важен"></div>
+      <div class="form-group">
+        <label>Фото NPC</label>
+        <div class="upload-row">
+          <label class="upload-label" for="npcPhotoInput">Загрузить фото NPC</label>
+          <input type="file" id="npcPhotoInput" accept="image/*" style="display:none;">
+          <img class="upload-preview" id="npcPhotoPreview" src="" alt="">
+        </div>
+      </div>
+      <button class="btn" id="addNpcBtn" style="width:100%; justify-content:center; margin-top: 10px;">Добавить NPC</button>
+      <div class="edit-npc-list" id="editNpcList" style="display:none;"><label style="font-size:0.9rem; color:var(--accent); display:block;">Добавленные NPC:</label></div>
+      <div class="modal-actions">
+        <button class="btn" id="cancelModal">Отмена</button>
+        <button class="btn" id="saveModal">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Поиск -->
+  <div class="modal-overlay" id="searchModal">
+    <div class="modal">
+      <h2>Поиск</h2>
+      <input type="text" id="searchInput" placeholder="Имя NPC или город..." style="margin-bottom: 1rem;">
+      <div id="searchResults" style="max-height: 50vh; overflow-y: auto;"></div>
+      <div class="modal-actions"><button class="btn" id="closeSearchModal">Закрыть</button></div>
+    </div>
+  </div>
+
+  <!-- Все NPC -->
+  <div class="modal-overlay" id="allNpcModal">
+    <div class="modal">
+      <h2>Все NPC</h2>
+      <button class="add-npc-btn-big" id="openAddGlobalNpcModal">➕ Создать нового NPC</button>
+      <div class="all-npc-grid" id="allNpcGrid"></div>
+      <div class="modal-actions"><button class="btn" id="closeAllNpcModal">Закрыть</button></div>
+    </div>
+  </div>
+
+  <!-- Создание NPC -->
+  <div class="modal-overlay" id="addGlobalNpcModal">
+    <div class="modal">
+      <h2>Создать NPC</h2>
+      <div class="form-group"><label>Имя NPC</label><input type="text" id="inpGlobalNpcName" placeholder="Например: Лорд Блэквуд"></div>
+      <div class="form-group"><label>Описание</label><input type="text" id="inpGlobalNpcDesc" placeholder="Кто он и чем важен"></div>
+      <div class="form-group"><label>В какой город добавить?</label><select id="inpGlobalNpcCity"></select></div>
+      <div class="form-group">
+        <label>Фото NPC</label>
+        <div class="upload-row">
+          <label class="upload-label" for="globalNpcPhotoInput">Загрузить фото</label>
+          <input type="file" id="globalNpcPhotoInput" accept="image/*" style="display:none;">
+          <img class="upload-preview" id="globalNpcPhotoPreview" src="" alt="">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="cancelAddGlobalNpc">Отмена</button>
+        <button class="btn" id="saveGlobalNpcBtn" style="background: var(--blood); color: #fff;">Создать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Справочник -->
+  <div class="modal-overlay" id="allItemsModal">
+    <div class="modal">
+      <h2>📚 Справочник</h2>
+      <button class="add-item-btn-big" id="openAddItemModal">➕ Добавить новый предмет</button>
+      <div class="all-npc-grid" id="allItemsGrid" style="max-height: 60vh;"></div>
+      <div class="modal-actions"><button class="btn" id="closeAllItemsModal">Закрыть</button></div>
+    </div>
+  </div>
+
+  <!-- Создание предмета -->
+  <div class="modal-overlay" id="addItemModal">
+    <div class="modal">
+      <h2>Создать предмет</h2>
+      <div class="form-group"><label>Название предмета</label><input type="text" id="inpItemName" placeholder="Например: Меч Света"></div>
+      <div class="form-group"><label>Свойства или эффект</label><input type="text" id="inpItemDesc" placeholder="Наносит доп. урон..."></div>
+      <div class="form-group">
+        <label>Иконка</label>
+        <div class="icon-picker" id="itemIconPicker" style="max-height: 150px;"></div>
+        <div class="upload-row" style="margin-bottom: 10px;">
+          <label class="upload-label" for="itemPhotoInput">📷 Загрузить фото</label>
+          <input type="file" id="itemPhotoInput" accept="image/*" style="display:none;">
+          <img class="upload-preview" id="itemPhotoPreview" src="" alt="">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="cancelAddItem">Отмена</button>
+        <button class="btn" id="addItemBtn" style="background: var(--blood); color: #fff;">Создать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Создание мира -->
+  <div class="modal-overlay" id="createWorldModal">
+    <div class="modal" style="width: 500px;">
+      <h2>Создать новый мир</h2>
+      <div class="form-group">
+        <label>Название мира</label>
+        <input type="text" id="inpWorldName" placeholder="Например: Аэтерна">
+      </div>
+      <div class="form-group">
+        <label>Описание (История мира)</label>
+        <textarea id="inpWorldDesc" placeholder="Впишите сюда всю историю мира..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Тема интерфейса</label>
+        <select id="inpWorldTheme">
+          <option value="dark">🩸 Dark Fantasy (Сталь и Кровь)</option>
+          <option value="north">❄️ Frozen North (Ледяной Север)</option>
+          <option value="desert">🏜️ Desert Sands (Песчаные Пустыни)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Обложка мира (для карточки)</label>
+        <div class="upload-row">
+          <label class="upload-label" for="worldCoverInput">📷 Загрузить обложку</label>
+          <input type="file" id="worldCoverInput" accept="image/*" style="display:none;">
+        </div>
+        <img class="upload-preview" id="worldCoverPreview" src="" alt="">
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="cancelCreateWorld">Отмена</button>
+        <button class="btn" id="confirmCreateWorld" style="background: var(--blood); color: #fff;">Создать мир</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Описание мира -->
+  <div class="modal-overlay" id="worldDescModal">
+    <div class="modal" style="width: 800px;">
+      <h2 id="worldDescTitle">История мира</h2>
+      <div id="worldDescContent" style="font-size: 1.1rem; line-height: 1.6; color: var(--text); white-space: pre-wrap; max-height: 60vh; overflow-y: auto; padding-right: 10px;"></div>
+      <div class="modal-actions">
+        <button class="btn" id="closeWorldDescModal">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const SUPABASE_URL = 'https://15f0103a9e794a39f6eee3b6a8e77b0e.supa.tatnet.cloud';
+    const SUPABASE_KEY = 'sb_publishable_vKKcBcFmpW2Vh5Bh2vBAp9LWGevo';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let state = {
+      worlds: [], currentWorld: null, isLoaded: false,
+      cities: [], items: [], currentBgBase64: "",
+      tempCoord: null, editingCityId: null, tempNpcs: [], tempCityPhoto: "", tempNpcPhoto: "", tempItemPhoto: "", tempGlobalNpcPhoto: "", tempWorldCover: "",
+      selectedIcon: "🏰", selectedItemIcon: "📦", currentScale: 1, currentX: 0, currentY: 0,
+      isMasterMode: true, isDrawMode: false, drawColor: "rgba(107, 20, 20, 0.8)", brushSize: 10,
+      currentCity: null, highlightedNpcName: null
+    };
+
+    const EMOJI_ICONS = ["🏰", "🏘️", "🏯", "🏛️", "⛪", "🕌", "🗼", "🏭", "⛰️", "🏔️", "🌋", "🗻", "🌲", "🌳", "🌴", "🏜️", "🏕️", "⛺", "🏝️", "🌊", "⚓", "🚢", "🌉", "🕳️", "🕍", "🏚️", "🏠", "🏡", "🏢", "🏦", "🏥", "🏫", "⚔️", "🛡️", "🏹", "🪓", "🐉", "👹", "💀", "🔥", "💰", "💎", "📜", "🔮", "🗺️", "🧭", "⚜️", "👑"];
+    const ITEM_ICONS = ["🗡️", "🛡️", "🏹", "🪓", "🔪", "🪄", "🏺", "💍", "🔑", "📿", "🧪", "🧿", "🪙", "🎭", "📜", "📚", "💎", "💰", "👑", "🔮", "🕯️", "🔥", "⚔️", "📦", "🎲", "🪞", "🗺️", "🧭"];
+
+    // DOM
+    const worldsScreen = document.getElementById('worldsScreen');
+    const worldsGrid = document.getElementById('worldsGrid');
+    const btnCreateWorld = document.getElementById('btnCreateWorld');
+    const mapInterface = document.getElementById('mapInterface');
+    const btnBackToWorlds = document.getElementById('btnBackToWorlds');
+    const currentWorldName = document.getElementById('currentWorldName');
+    
+    const viewport = document.getElementById('viewport');
+    const world = document.getElementById('world');
+    const mapWrapper = document.getElementById('mapWrapper');
+    const mapBg = document.getElementById('mapBg');
+    const drawCanvas = document.getElementById('drawCanvas');
+    const ctx = drawCanvas.getContext('2d');
+    const cityPanel = document.getElementById('cityPanel');
+    const cityTitle = document.getElementById('cityTitle');
+    const cityDesc = document.getElementById('cityDesc');
+    const npcList = document.getElementById('npcList');
+    const modal = document.getElementById('modal');
+    const modeBtn = document.getElementById('modeBtn');
+    const drawBtn = document.getElementById('drawBtn');
+    const drawControls = document.getElementById('drawControls');
+    const modalTitle = document.getElementById('modalTitle');
+    const editCityBtn = document.getElementById('editCityBtn');
+    const deleteCityBtn = document.getElementById('deleteCityBtn');
+    const editNpcList = document.getElementById('editNpcList');
+    const iconPicker = document.getElementById('iconPicker');
+    const itemIconPicker = document.getElementById('itemIconPicker');
+    const syncStatus = document.getElementById('syncStatus');
+    const saveBgBtn = document.getElementById('saveBgBtn');
+    const fullCard = document.getElementById('fullCard');
+    const fullCardTitle = document.getElementById('fullCardTitle');
+    const fullCardSub = document.getElementById('fullCardSub');
+    const fullCardAvatar = document.getElementById('fullCardAvatar');
+    const fullCardDesc = document.getElementById('fullCardDesc');
+    const closeFullCard = document.getElementById('closeFullCard');
+    const allNpcModal = document.getElementById('allNpcModal');
+    const allNpcGrid = document.getElementById('allNpcGrid');
+    const addGlobalNpcModal = document.getElementById('addGlobalNpcModal');
+    const inpGlobalNpcCity = document.getElementById('inpGlobalNpcCity');
+    const allItemsModal = document.getElementById('allItemsModal');
+    const allItemsGrid = document.getElementById('allItemsGrid');
+    const addItemModal = document.getElementById('addItemModal');
+    const brushSizeSlider = document.getElementById('brushSizeSlider');
+    const brushSizeNum = document.getElementById('brushSizeNum');
+    const cityPhotoInput = document.getElementById('cityPhotoInput');
+    const cityPhotoPreview = document.getElementById('cityPhotoPreview');
+    const npcPhotoInput = document.getElementById('npcPhotoInput');
+    const npcPhotoPreview = document.getElementById('npcPhotoPreview');
+    const itemPhotoInput = document.getElementById('itemPhotoInput');
+    const itemPhotoPreview = document.getElementById('itemPhotoPreview');
+    const globalNpcPhotoInput = document.getElementById('globalNpcPhotoInput');
+    const globalNpcPhotoPreview = document.getElementById('globalNpcPhotoPreview');
+    const searchModal = document.getElementById('searchModal');
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const desktopMenu = document.getElementById('desktopMenu');
+    const createWorldModal = document.getElementById('createWorldModal');
+    const worldCoverInput = document.getElementById('worldCoverInput');
+    const worldCoverPreview = document.getElementById('worldCoverPreview');
+    
+    const worldDescModal = document.getElementById('worldDescModal');
+    const worldDescTitle = document.getElementById('worldDescTitle');
+    const worldDescContent = document.getElementById('worldDescContent');
+
+    // UI Functions
+    window.toggleGroup = function(header) {
+      const group = header.parentElement;
+      group.classList.toggle('open');
+    };
+    mobileMenuBtn.addEventListener('click', () => desktopMenu.classList.toggle('show'));
+
+    const particlesContainer = document.getElementById('particles');
+    function createParticles() {
+      particlesContainer.innerHTML = '';
+      const colors = ['var(--particle-color-1)', 'var(--particle-color-2)', 'var(--particle-color-3)'];
+      for (let i = 0; i < 150; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 3 + 1;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.boxShadow = `0 0 ${size * 2}px ${p.style.background}`;
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        p.style.animationDelay = Math.random() * 15 + 's';
+        particlesContainer.appendChild(p);
+      }
+    }
+
+    function applyTheme(themeName) {
+      document.body.className = `theme-${themeName}`;
+      createParticles();
+    }
+
+    // Init
+    async function initApp() {
+      try {
+        const { data, error } = await supabase.from('map_data').select('*').eq('id', 1).single();
+        if (error || !data || !data.data || !data.data.worlds) {
+          await supabase.from('map_data').upsert({ id: 1, data: { worlds: [] } });
+          state.worlds = [];
+        } else {
+          state.worlds = data.data.worlds;
+        }
+        
+        state.isLoaded = true;
+        renderWorldsScreen();
+        
+        supabase.channel('map_updates')
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'map_data' }, (payload) => {
+            if (payload.new && payload.new.data) {
+              state.worlds = payload.new.data.worlds || [];
+              if (!state.currentWorld) {
+                renderWorldsScreen();
+              } else {
+                const updatedWorld = state.worlds.find(w => w.id === state.currentWorld.id);
+                if (updatedWorld) {
+                  state.currentWorld = updatedWorld;
+                  state.cities = updatedWorld.cities || [];
+                  state.items = updatedWorld.items || [];
+                  if (updatedWorld.background !== state.currentBgBase64) {
+                    state.currentBgBase64 = updatedWorld.background || "";
+                    if (state.currentBgBase64) {
+                      mapBg.src = state.currentBgBase64;
+                      mapBg.style.opacity = '1';
+                      onMapLoaded();
+                    } else {
+                      mapBg.src = "";
+                      mapBg.style.opacity = '0';
+                    }
+                  }
+                  renderPins();
+                }
+              }
+            }
+          }).subscribe();
+      } catch (err) { console.error("Ошибка:", err); }
+    }
+
+    // Worlds Screen
+    function renderWorldsScreen() {
+      worldsGrid.innerHTML = '';
+      if (state.worlds.length === 0) {
+        worldsGrid.innerHTML = '<p style="color:#777; text-align:center; grid-column: 1/-1; font-size:1.2rem;">У вас пока нет миров. Создайте первый!</p>';
+      } else {
+        state.worlds.forEach(w => {
+          const card = document.createElement('div');
+          card.className = 'world-card';
+          const bgStyle = w.cover ? `background-image: url(${w.cover});` : 'background-color: #1a1a1a;';
+          const themeName = w.theme === 'north' ? '❄️ Север' : (w.theme === 'desert' ? '🏜️ Пустыня' : '🩸 Фэнтези');
+          
+          card.innerHTML = `
+            <div class="world-card-img" style="${bgStyle}">
+              <div class="world-card-delete" data-id="${w.id}" title="Удалить мир">✕</div>
+            </div>
+            <div class="world-card-content">
+              <div class="world-card-title">${w.name}</div>
+              <div class="world-card-desc">${w.desc || 'Нет описания'}</div>
+              <div class="world-card-stats">
+                <span>🏰 ${w.cities ? w.cities.length : 0} городов</span>
+                <span>👥 ${w.cities ? w.cities.reduce((acc, c) => acc + (c.npcs ? c.npcs.length : 0), 0) : 0} NPC</span>
+                <span style="margin-left:auto; opacity:0.7">${themeName}</span>
+              </div>
+            </div>
+          `;
+          
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('.world-card-delete')) return;
+            enterWorld(w.id);
+          });
+          worldsGrid.appendChild(card);
+        });
+      }
+    }
+
+    worldsGrid.addEventListener('click', async (e) => {
+      const delBtn = e.target.closest('.world-card-delete');
+      if (!delBtn) return;
+      e.stopPropagation();
+      const worldId = parseInt(delBtn.dataset.id);
+      if (confirm('Удалить этот мир навсегда?')) {
+        state.worlds = state.worlds.filter(w => w.id !== worldId);
+        await saveWorldsToDb();
+        renderWorldsScreen();
+      }
+    });
+
+    // Create World
+    btnCreateWorld.addEventListener('click', () => {
+      document.getElementById('inpWorldName').value = '';
+      document.getElementById('inpWorldDesc').value = '';
+      document.getElementById('inpWorldTheme').value = 'dark';
+      worldCoverPreview.style.display = 'none';
+      worldCoverPreview.src = '';
+      worldCoverInput.value = '';
+      state.tempWorldCover = "";
+      createWorldModal.classList.add('open');
+    });
+
+    document.getElementById('cancelCreateWorld').addEventListener('click', () => createWorldModal.classList.remove('open'));
+
+    worldCoverInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { alert("Файл слишком большой! Выберите до 2 МБ."); return; }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        worldCoverPreview.src = ev.target.result;
+        worldCoverPreview.style.display = 'block';
+        state.tempWorldCover = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('confirmCreateWorld').addEventListener('click', () => {
+      const name = document.getElementById('inpWorldName').value.trim();
+      const desc = document.getElementById('inpWorldDesc').value.trim();
+      const theme = document.getElementById('inpWorldTheme').value;
+      
+      if (!name) return alert('Введите название мира!');
+
+      const newWorld = {
+        id: Date.now(),
+        name: name,
+        desc: desc || 'Новый мир...',
+        theme: theme,
+        cover: state.tempWorldCover || null,
+        background: null,
+        cities: [],
+        items: []
+      };
+      
+      state.worlds.push(newWorld);
+      saveWorldsToDb();
+      renderWorldsScreen();
+      createWorldModal.classList.remove('open');
+    });
+
+    async function saveWorldsToDb() {
+      await supabase.from('map_data').upsert({ id: 1, data: { worlds: state.worlds } });
+    }
+
+    function enterWorld(worldId) {
+      const w = state.worlds.find(w => w.id === worldId);
+      if (!w) return;
+
+      state.currentWorld = w;
+      state.cities = w.cities || [];
+      state.items = w.items || [];
+      state.currentBgBase64 = w.background || "";
+      
+      applyTheme(w.theme || 'dark');
+      
+      worldsScreen.style.display = 'none';
+      mapInterface.style.display = 'block';
+      currentWorldName.textContent = w.name;
+
+      if (state.currentBgBase64) {
+        mapBg.src = state.currentBgBase64;
+        mapBg.style.opacity = '1';
+        onMapLoaded();
+      } else {
+        mapBg.src = "";
+        mapBg.style.opacity = '0';
+        drawCanvas.width = 0;
+        drawCanvas.height = 0;
+        renderPins();
+      }
+      resetZoom();
+    }
+
+    btnBackToWorlds.addEventListener('click', () => {
+      state.currentWorld = null;
+      resetZoom();
+      applyTheme('dark');
+      mapInterface.style.display = 'none';
+      worldsScreen.style.display = 'flex';
+      renderWorldsScreen();
+    });
+
+    async function saveCurrentWorldData() {
+      if (!state.currentWorld) return;
+      const wIndex = state.worlds.findIndex(w => w.id === state.currentWorld.id);
+      if (wIndex !== -1) {
+        state.worlds[wIndex].cities = state.cities;
+        state.worlds[wIndex].items = state.items;
+        state.worlds[wIndex].background = state.currentBgBase64;
+        await supabase.from('map_data').upsert({ id: 1, data: { worlds: state.worlds } });
+        syncStatus.textContent = "Сохранено ✅";
+      }
+    }
+
+    function triggerSave() {
+      saveCurrentWorldData();
+    }
+
+    // Описание мира
+    document.getElementById('showWorldDescBtn').addEventListener('click', () => {
+      if (!state.currentWorld) return;
+      worldDescTitle.textContent = `История мира: ${state.currentWorld.name}`;
+      worldDescContent.textContent = state.currentWorld.desc || 'Нет описания.';
+      worldDescModal.classList.add('open');
+    });
+    document.getElementById('closeWorldDescModal').addEventListener('click', () => worldDescModal.classList.remove('open'));
+
+    // Map Logic
+    window.onMapLoaded = function() {
+      if (!mapBg.naturalWidth) return;
+      const vw = viewport.clientWidth; const vh = viewport.clientHeight;
+      const imgW = mapBg.naturalWidth; const imgH = mapBg.naturalHeight;
+      const imgRatio = imgW / imgH; const boxRatio = vw / vh;
+
+      if (imgRatio > boxRatio) {
+        mapWrapper.style.width = '100%'; mapWrapper.style.height = 'auto'; mapWrapper.style.aspectRatio = `${imgW} / ${imgH}`;
+      } else {
+        mapWrapper.style.height = '100%'; mapWrapper.style.width = 'auto'; mapWrapper.style.aspectRatio = `${imgW} / ${imgH}`;
+      }
+      resizeCanvas();
+      renderPins(); 
+    };
+
+    function resizeCanvas() {
+      if (!mapWrapper.clientWidth) return;
+      drawCanvas.width = mapWrapper.clientWidth;
+      drawCanvas.height = mapWrapper.clientHeight;
+    }
+    window.addEventListener('resize', () => { if (mapBg.src) onMapLoaded(); });
+
+    let history = []; let isDrawing = false; let lastX = 0, lastY = 0;
+
+    function saveHistory() {
+      if (!drawCanvas.width) return;
+      if (history.length > 20) history.shift(); 
+      history.push(ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height));
+    }
+
+    function getCanvasCoords(clientX, clientY) {
+      const rect = drawCanvas.getBoundingClientRect();
+      return { x: (clientX - rect.left) * (drawCanvas.width / rect.width), y: (clientY - rect.top) * (drawCanvas.height / rect.height) };
+    }
+
+    viewport.addEventListener('mousedown', (e) => {
+      if (!state.isDrawMode) return;
+      const { x, y } = getCanvasCoords(e.clientX, e.clientY);
+      isDrawing = true; [lastX, lastY] = [x, y]; saveHistory(); 
+      ctx.beginPath(); ctx.arc(x, y, state.brushSize / 2, 0, Math.PI * 2); ctx.fillStyle = state.drawColor; ctx.fill();
+    });
+    viewport.addEventListener('mousemove', (e) => {
+      if (!state.isDrawMode || !isDrawing) return;
+      const { x, y } = getCanvasCoords(e.clientX, e.clientY);
+      ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y);
+      ctx.strokeStyle = state.drawColor; ctx.lineWidth = state.brushSize; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+      [lastX, lastY] = [x, y];
+    });
+    viewport.addEventListener('mouseup', () => isDrawing = false);
+    viewport.addEventListener('mouseleave', () => isDrawing = false);
+
+    viewport.addEventListener('touchstart', (e) => {
+      if (!state.isDrawMode) return;
+      const { x, y } = getCanvasCoords(e.touches[0].clientX, e.touches[0].clientY);
+      isDrawing = true; [lastX, lastY] = [x, y]; saveHistory(); 
+      ctx.beginPath(); ctx.arc(x, y, state.brushSize / 2, 0, Math.PI * 2); ctx.fillStyle = state.drawColor; ctx.fill();
+    }, { passive: true });
+    viewport.addEventListener('touchmove', (e) => {
+      if (!state.isDrawMode || !isDrawing) return;
+      const { x, y } = getCanvasCoords(e.touches[0].clientX, e.touches[0].clientY);
+      ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y);
+      ctx.strokeStyle = state.drawColor; ctx.lineWidth = state.brushSize; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+      [lastX, lastY] = [x, y];
+    }, { passive: true });
+    viewport.addEventListener('touchend', () => isDrawing = false);
+
+    drawBtn.addEventListener('click', () => {
+      state.isDrawMode = !state.isDrawMode;
+      drawBtn.classList.toggle('active', state.isDrawMode);
+      drawControls.classList.toggle('active', state.isDrawMode);
+      drawCanvas.classList.toggle('active', state.isDrawMode);
+      viewport.style.cursor = state.isDrawMode ? 'crosshair' : (state.isMasterMode ? 'crosshair' : 'grab');
+      modeBtn.disabled = state.isDrawMode;
+      modeBtn.style.opacity = state.isDrawMode ? '0.5' : '1';
+    });
+
+    document.querySelectorAll('.color-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('.color-opt').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected'); state.drawColor = opt.dataset.color;
+      });
+    });
+
+    brushSizeSlider.addEventListener('input', (e) => { const val = parseInt(e.target.value, 10); state.brushSize = val; brushSizeNum.value = val; });
+    brushSizeNum.addEventListener('input', (e) => { let val = parseInt(e.target.value, 10); if (isNaN(val) || val < 1) val = 1; if (val > 50) val = 50; state.brushSize = val; brushSizeSlider.value = val; });
+
+    document.getElementById('undoBtn').addEventListener('click', () => { if (history.length > 0) { const prev = history.pop(); ctx.putImageData(prev, 0, 0); } });
+    document.getElementById('clearDrawingBtn').addEventListener('click', () => { if (confirm('Очистить границы?')) { saveHistory(); ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height); } });
+
+    let isDraggingMap = false, startX = 0, startY = 0, startTx = 0, startTy = 0, hasMoved = false;
+    let pinchStartDist = 0, pinchStartScale = 1, pinchCenterX = 0, pinchCenterY = 0;
+
+    function startDrag(clientX, clientY) {
+      if (state.isDrawMode) return; 
+      isDraggingMap = true; hasMoved = false;
+      startX = clientX; startY = clientY; startTx = state.currentX; startTy = state.currentY;
+      world.classList.add('dragging'); viewport.classList.add('grabbing');
+    }
+    function moveDrag(clientX, clientY) {
+      if (!isDraggingMap) return;
+      const dx = clientX - startX; const dy = clientY - startY;
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) hasMoved = true; 
+      state.currentX = startTx + dx; state.currentY = startTy + dy;
+      world.style.transform = `translate(${state.currentX}px, ${state.currentY}px) scale(${state.currentScale})`;
+    }
+    function endDrag() {
+      if (!isDraggingMap) return;
+      isDraggingMap = false; world.classList.remove('dragging'); viewport.classList.remove('grabbing');
+    }
+
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.city-pin') || e.target.closest('.city-panel') || e.target.closest('.controls')) return;
+      startDrag(e.clientX, e.clientY);
+    });
+    window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
+    window.addEventListener('mouseup', endDrag);
+
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.target.closest('.city-pin') || e.target.closest('.city-panel') || e.target.closest('.controls')) return;
+      if (e.touches.length === 1 && !state.isDrawMode) {
+        startDrag(e.touches[0].clientX, e.touches[0].clientY);
+      } else if (e.touches.length === 2) {
+        isDraggingMap = false;
+        pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        pinchStartScale = state.currentScale;
+        pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        world.classList.add('dragging');
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', (e) => { 
+      if (e.touches.length === 1 && !state.isDrawMode) {
+        moveDrag(e.touches[0].clientX, e.touches[0].clientY); 
+      } else if (e.touches.length === 2 && !state.isDrawMode) {
+        e.preventDefault();
+        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        const newScale = Math.max(0.5, Math.min(6, pinchStartScale * (dist / pinchStartDist)));
+        const rect = viewport.getBoundingClientRect();
+        const mouseX = pinchCenterX - rect.left; const mouseY = pinchCenterY - rect.top;
+        const worldX = (mouseX - state.currentX) / state.currentScale; const worldY = (mouseY - state.currentY) / state.currentScale;
+        state.currentX = mouseX - worldX * newScale; state.currentY = mouseY - worldY * newScale; state.currentScale = newScale;
+        world.style.transform = `translate(${state.currentX}px, ${state.currentY}px) scale(${state.currentScale})`;
+      }
+    }, { passive: false });
+    viewport.addEventListener('touchend', endDrag);
+
+    viewport.addEventListener('wheel', (e) => {
+      if (state.isDrawMode) return; 
+      e.preventDefault();
+      const rect = viewport.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left; const mouseY = e.clientY - rect.top;
+      const oldScale = state.currentScale;
+      let newScale = e.deltaY < 0 ? oldScale * 1.1 : oldScale / 1.1;
+      newScale = Math.max(0.5, Math.min(6, newScale));
+      if (newScale === oldScale) return;
+      const worldX = (mouseX - state.currentX) / oldScale; const worldY = (mouseY - state.currentY) / oldScale;
+      state.currentX = mouseX - worldX * newScale; state.currentY = mouseY - worldY * newScale; state.currentScale = newScale;
+      world.classList.add('dragging');
+      world.style.transform = `translate(${state.currentX}px, ${state.currentY}px) scale(${state.currentScale})`;
+      clearTimeout(window._wheelTimeout);
+      window._wheelTimeout = setTimeout(() => { world.classList.remove('dragging'); }, 150);
+    }, { passive: false });
+
+    function zoomToCity(city) {
+        const vw = viewport.clientWidth; const vh = viewport.clientHeight;
+        const isMobile = vw <= 768;
+        const offsetX = isMobile ? 0 : 200; const offsetY = isMobile ? 100 : 0; 
+        const scale = 2.5;
+        const cityX = mapWrapper.offsetLeft + (city.x / 100) * mapWrapper.clientWidth; 
+        const cityY = mapWrapper.offsetTop + (city.y / 100) * mapWrapper.clientHeight;
+        let tx = ((vw - offsetX) / 2) - (cityX * scale);
+        let ty = ((vh + offsetY) / 2) - (cityY * scale);
+        tx = Math.min(0, Math.max(vw - (vw * scale), tx));
+        ty = Math.min(0, Math.max(vh - (vh * scale), ty));
+        state.currentScale = scale; state.currentX = tx; state.currentY = ty;
+        world.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    }
+
+    function resetZoom() {
+      state.currentScale = 1; state.currentX = 0; state.currentY = 0;
+      world.style.transform = `translate(0, 0) scale(1)`;
+      cityPanel.classList.remove('open'); state.currentCity = null; state.highlightedNpcName = null;
+      fullCard.classList.remove('open'); 
+      viewport.classList.remove('shifted');
+    }
+
+    document.getElementById('resetZoom').addEventListener('click', resetZoom);
+    document.getElementById('closePanel').addEventListener('click', resetZoom);
+    closeFullCard.addEventListener('click', () => { fullCard.classList.remove('open'); viewport.classList.remove('shifted'); });
+
+    function renderPins() {
+      document.querySelectorAll('.city-pin').forEach(el => el.remove());
+      state.cities.forEach(city => {
+        const pin = document.createElement('div');
+        pin.className = 'city-pin';
+        pin.style.left = city.x + '%'; pin.style.top = city.y + '%';
+        let iconHtml = city.icon.startsWith('data:image') ? `<img src="${city.icon}" alt="">` : city.icon;
+        
+        pin.innerHTML = `
+          <div class="pin-icon">${iconHtml}</div>
+          <div class="pin-label">${city.name}</div>
+          <div class="quick-delete-city" title="Удалить город">✕</div>
+        `;
+
+        pin.querySelector('.quick-delete-city').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm(`Удалить город "${city.name}"?`)) {
+            state.cities = state.cities.filter(c => c.id !== city.id);
+            renderPins();
+            if (state.currentCity && state.currentCity.id === city.id) resetZoom();
+            triggerSave();
+          }
+        });
+
+        pin.addEventListener('click', (e) => {
+          if (e.target.closest('.quick-delete-city')) return;
+          e.stopPropagation();
+          if (hasMoved) return;
+          state.highlightedNpcName = null;
+          openCityPanel(city); 
+          zoomToCity(city);
+          if (window.innerWidth <= 768) desktopMenu.classList.remove('show');
+        });
+        mapWrapper.appendChild(pin);
+      });
+    }
+
+    function openCityPanel(city, highlightName = null) {
+      state.currentCity = city;
+      let iconHtml = city.icon.startsWith('data:image') ? `<img src="${city.icon}" alt="">` : city.icon;
+      
+      cityTitle.innerHTML = `<span class="title-icon">${iconHtml}</span> ${city.name}`;
+      cityDesc.textContent = city.desc || 'Нет описания.';
+      npcList.innerHTML = '';
+      
+      if (!city.npcs || city.npcs.length === 0) {
+        npcList.innerHTML = '<p style="color:#5a6e7d; text-align:center; font-style:italic;">В этом городе пока нет NPC.</p>';
+      } else {
+        city.npcs.forEach((npc, idx) => {
+          const card = document.createElement('div'); 
+          card.className = 'npc-card';
+          if (highlightName && npc.name === highlightName) {
+            card.classList.add('highlight');
+            setTimeout(() => { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+          }
+          
+          let avatarHtml = '👤';
+          let isImg = false;
+          if (npc.avatar) {
+            isImg = npc.avatar.startsWith('data:image');
+            avatarHtml = isImg ? `<img src="${npc.avatar}" alt="">` : npc.avatar;
+          }
+
+          card.innerHTML = `
+            <div class="npc-avatar">${avatarHtml}</div>
+            <div class="npc-info"><h3>${npc.name}</h3><p>${npc.desc}</p></div>
+            <button class="delete-npc" data-idx="${idx}">Убить</button>
+          `;
+          
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-npc')) return; 
+            openFullCard(npc.name, 'NPC', npc.desc, isImg ? npc.avatar : avatarHtml, isImg);
+          });
+
+          card.querySelector('.delete-npc').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (confirm(`Удалить ${npc.name}?`)) { 
+              city.npcs.splice(idx, 1); 
+              triggerSave(); 
+              openCityPanel(city); 
+            }
+          });
+          npcList.appendChild(card);
+        });
+      }
+      cityPanel.classList.add('open');
+    }
+
+    function openFullCard(title, sub, desc, avatarHtml, isImage) {
+      fullCardTitle.textContent = title;
+      fullCardSub.textContent = sub;
+      fullCardDesc.textContent = desc || 'Нет описания.';
+      if (isImage) fullCardAvatar.innerHTML = `<img src="${avatarHtml}" alt="">`;
+      else fullCardAvatar.innerHTML = `<span>${avatarHtml}</span>`;
+      fullCard.classList.add('open');
+      if (window.innerWidth > 768) viewport.classList.add('shifted');
+    }
+
+    function handlePhotoUpload(input, preview, callback) {
+      input.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 1 * 1024 * 1024) { alert("Файл слишком большой! Выберите фото до 1 МБ."); return; }
+        const reader = new FileReader();
+        reader.onload = (ev) => { preview.src = ev.target.result; preview.style.display = 'block'; callback(ev.target.result); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    handlePhotoUpload(cityPhotoInput, cityPhotoPreview, (base64) => { state.tempCityPhoto = base64; });
+    handlePhotoUpload(npcPhotoInput, npcPhotoPreview, (base64) => { state.tempNpcPhoto = base64; });
+    handlePhotoUpload(itemPhotoInput, itemPhotoPreview, (base64) => { state.tempItemPhoto = base64; });
+    handlePhotoUpload(globalNpcPhotoInput, globalNpcPhotoPreview, (base64) => { state.tempGlobalNpcPhoto = base64; });
+
+    function renderIconPicker(picker, icons, selected, callback) {
+      picker.innerHTML = '';
+      icons.forEach(icon => {
+        const el = document.createElement('div');
+        el.className = 'icon-option' + (selected === icon ? ' selected' : '');
+        el.textContent = icon;
+        el.addEventListener('click', () => {
+          callback(icon);
+          picker.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+          el.classList.add('selected');
+        });
+        picker.appendChild(el);
+      });
+    }
+
+    viewport.addEventListener('click', (e) => {
+      if (!state.isMasterMode || state.isDrawMode) return;
+      if (e.target.closest('.city-pin') || e.target.closest('.city-panel') || e.target.closest('.controls')) return;
+      if (hasMoved) { hasMoved = false; return; }
+      
+      const rect = viewport.getBoundingClientRect();
+      const clickX = e.clientX - rect.left; const clickY = e.clientY - rect.top;
+      const worldX = (clickX - state.currentX) / state.currentScale; const worldY = (clickY - state.currentY) / state.currentScale;
+      const wrapperX = worldX - mapWrapper.offsetLeft; const wrapperY = worldY - mapWrapper.offsetTop;
+      const xPercent = (wrapperX / mapWrapper.clientWidth) * 100; const yPercent = (wrapperY / mapWrapper.clientHeight) * 100;
+
+      if (xPercent < 0 || xPercent > 100 || yPercent < 0 || yPercent > 100) return;
+
+      state.tempCoord = { x: xPercent, y: yPercent };
+      state.editingCityId = null; state.tempNpcs = []; state.tempCityPhoto = ""; state.tempNpcPhoto = "";
+      
+      modalTitle.textContent = 'Добавить локацию';
+      document.getElementById('inpCityName').value = ''; document.getElementById('inpCityDesc').value = '';
+      document.getElementById('inpNpcName').value = ''; document.getElementById('inpNpcDesc').value = '';
+      
+      state.selectedIcon = "🏰"; 
+      cityPhotoPreview.style.display = 'none'; cityPhotoInput.value = '';
+      npcPhotoPreview.style.display = 'none'; npcPhotoInput.value = '';
+      
+      renderIconPicker(iconPicker, EMOJI_ICONS, state.selectedIcon, (val) => { state.selectedIcon = val; state.tempCityPhoto = ""; cityPhotoPreview.style.display = 'none'; });
+      renderEditNpcList(); 
+      modal.classList.add('open');
+    });
+
+    editCityBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!state.currentCity) return;
+      state.editingCityId = state.currentCity.id;
+      state.tempNpcs = JSON.parse(JSON.stringify(state.currentCity.npcs || []));
+      modalTitle.textContent = 'Изменить локацию';
+      document.getElementById('inpCityName').value = state.currentCity.name;
+      document.getElementById('inpCityDesc').value = state.currentCity.desc;
+      
+      state.selectedIcon = state.currentCity.icon || "🏰";
+      if (state.currentCity.icon && state.currentCity.icon.startsWith('data:image')) {
+        cityPhotoPreview.src = state.currentCity.icon; cityPhotoPreview.style.display = 'block'; 
+        state.tempCityPhoto = state.currentCity.icon; cityPhotoInput.value = '';
+      } else { cityPhotoPreview.style.display = 'none'; state.tempCityPhoto = ""; }
+      
+      renderIconPicker(iconPicker, EMOJI_ICONS, state.selectedIcon, (val) => { state.selectedIcon = val; state.tempCityPhoto = ""; cityPhotoPreview.style.display = 'none'; });
+      renderEditNpcList(); 
+      modal.classList.add('open');
+    });
+
+    function renderEditNpcList() {
+      editNpcList.innerHTML = '';
+      if (state.tempNpcs.length === 0) { editNpcList.style.display = 'none'; return; }
+      editNpcList.style.display = 'block';
+      editNpcList.innerHTML = '<label style="font-size:0.9rem; color:var(--accent); margin-bottom:0.4rem; display:block; font-family:var(--font-title);">Добавленные NPC:</label>';
+      state.tempNpcs.forEach((npc, idx) => {
+        const el = document.createElement('div'); el.className = 'edit-npc-item';
+        let avatarStr = '👤';
+        if (npc.avatar) avatarStr = npc.avatar.startsWith('data:image') ? '📷' : npc.avatar;
+        el.innerHTML = `<span>${avatarStr} <b>${npc.name}</b></span><button style="background:none; border:none; color:var(--blood); cursor:pointer; font-size:1rem;" class="del-temp-npc" data-idx="${idx}">✕</button>`;
+        el.querySelector('.del-temp-npc').addEventListener('click', () => { state.tempNpcs.splice(idx, 1); renderEditNpcList(); });
+        editNpcList.appendChild(el);
+      });
+    }
+
+    document.getElementById('addNpcBtn').addEventListener('click', () => {
+      const name = document.getElementById('inpNpcName').value.trim();
+      const desc = document.getElementById('inpNpcDesc').value.trim();
+      if (!name) return alert('Введите имя NPC!');
+      const avatar = state.tempNpcPhoto ? state.tempNpcPhoto : '👤';
+      state.tempNpcs.push({ name, desc: desc || 'Нет описания.', avatar });
+      document.getElementById('inpNpcName').value = ''; document.getElementById('inpNpcDesc').value = '';
+      npcPhotoPreview.style.display = 'none'; npcPhotoInput.value = ''; state.tempNpcPhoto = "";
+      renderEditNpcList();
+    });
+
+    document.getElementById('saveModal').addEventListener('click', () => {
+      const name = document.getElementById('inpCityName').value.trim();
+      const desc = document.getElementById('inpCityDesc').value.trim();
+      if (!name) return alert('Введите название города!');
+
+      const finalIcon = state.tempCityPhoto ? state.tempCityPhoto : state.selectedIcon;
+
+      if (state.editingCityId) {
+        const city = state.cities.find(c => c.id === state.editingCityId);
+        if (city) { city.name = name; city.desc = desc; city.npcs = state.tempNpcs; city.icon = finalIcon; }
+      } else {
+        state.cities.push({ id: Date.now(), name, desc, x: state.tempCoord.x, y: state.tempCoord.y, icon: finalIcon, npcs: state.tempNpcs });
+      }
+      
+      renderPins(); 
+      modal.classList.remove('open'); 
+      resetZoom(); 
+      triggerSave();
+    });
+
+    document.getElementById('cancelModal').addEventListener('click', () => { modal.classList.remove('open'); });
+    
+    deleteCityBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!state.currentCity) return;
+      if (confirm(`Вы уверены, что хотите предать огню город "${state.currentCity.name}"?`)) {
+        state.cities = state.cities.filter(c => c.id !== state.currentCity.id);
+        renderPins(); triggerSave(); resetZoom();
+      }
+    });
+
+    modeBtn.addEventListener('click', () => {
+      state.isMasterMode = !state.isMasterMode;
+      modeBtn.classList.toggle('active', state.isMasterMode);
+      modeBtn.innerHTML = `<span class="btn-icon">🛠️</span> Режим: ${state.isMasterMode ? 'Вкл' : 'Выкл'}`;
+      viewport.classList.toggle('master-mode', state.isMasterMode);
+      if (window.innerWidth <= 768) desktopMenu.classList.remove('show');
+    });
+
+    document.getElementById('bgInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2.5 * 1024 * 1024) { alert("Файл слишком большой! Выберите картинку до 2.5 МБ."); return; }
+      const reader = new FileReader();
+      reader.onload = (ev) => { 
+        mapBg.src = ev.target.result; 
+        mapBg.style.opacity = '1'; 
+        saveBgBtn.style.display = 'flex'; 
+        onMapLoaded(); 
+      };
+      reader.readAsDataURL(file);
+      if (window.innerWidth <= 768) desktopMenu.classList.remove('show');
+    });
+
+    saveBgBtn.addEventListener('click', () => {
+      state.currentBgBase64 = mapBg.src;
+      triggerSave();
+      saveBgBtn.style.display = 'none';
+      alert("Фоновая карта сохранена для этого мира!");
+    });
+
+    document.getElementById('openAllNpcBtn').addEventListener('click', () => {
+      renderAllNpcs();
+      allNpcModal.classList.add('open');
+      if (window.innerWidth <= 768) desktopMenu.classList.remove('show');
+    });
+    document.getElementById('closeAllNpcModal').addEventListener('click', () => allNpcModal.classList.remove('open'));
+
+    document.getElementById('openAddGlobalNpcModal').addEventListener('click', () => {
+      document.getElementById('inpGlobalNpcName').value = ''; document.getElementById('inpGlobalNpcDesc').value = '';
+      globalNpcPhotoPreview.style.display = 'none'; globalNpcPhotoInput.value = ''; state.tempGlobalNpcPhoto = "";
+      inpGlobalNpcCity.innerHTML = '';
+      state.cities.forEach(city => {
+        const opt = document.createElement('option'); opt.value = city.id; opt.textContent = city.name; inpGlobalNpcCity.appendChild(opt);
+      });
+      addGlobalNpcModal.classList.add('open');
+    });
+    document.getElementById('cancelAddGlobalNpc').addEventListener('click', () => addGlobalNpcModal.classList.remove('open'));
+
+    document.getElementById('saveGlobalNpcBtn').addEventListener('click', () => {
+      const name = document.getElementById('inpGlobalNpcName').value.trim();
+      const desc = document.getElementById('inpGlobalNpcDesc').value.trim();
+      const cityId = parseInt(inpGlobalNpcCity.value);
+      if (!name) return alert('Введите имя NPC!');
+      const city = state.cities.find(c => c.id === cityId);
+      if (!city) return alert('Город не найден!');
+      if (!city.npcs) city.npcs = [];
+      const avatar = state.tempGlobalNpcPhoto ? state.tempGlobalNpcPhoto : '👤';
+      city.npcs.push({ name, desc: desc || 'Нет описания.', avatar });
+      triggerSave(); renderAllNpcs(); addGlobalNpcModal.classList.remove('open');
+      if (state.currentCity && state.currentCity.id === cityId) openCityPanel(city);
+    });
+
+    function renderAllNpcs() {
+      allNpcGrid.innerHTML = '';
+      let totalNpcs = 0;
+      state.cities.forEach(city => {
+        if (city.npcs && city.npcs.length > 0) {
+          city.npcs.forEach(npc => {
+            totalNpcs++;
+            const card = document.createElement('div'); card.className = 'big-npc-card';
+            let avatarHtml = '👤'; let isImg = false;
+            if (npc.avatar) { isImg = npc.avatar.startsWith('data:image'); avatarHtml = isImg ? `<img src="${npc.avatar}" alt="">` : npc.avatar; }
+            card.innerHTML = `
+              <div class="big-npc-avatar">${avatarHtml}</div>
+              <div class="big-npc-info">
+                <h3>${npc.name}</h3>
+                <div class="location">📍 ${city.name}</div>
+                <p>${npc.desc || 'Нет описания.'}</p>
+                <button class="btn-go-to">Найти на карте</button>
+              </div>
+            `;
+            card.addEventListener('click', (e) => {
+              if (e.target.closest('.btn-go-to')) {
+                e.stopPropagation(); allNpcModal.classList.remove('open'); state.highlightedNpcName = npc.name;
+                openCityPanel(city, npc.name); zoomToCity(city);
+              } else {
+                openFullCard(npc.name, `Город: ${city.name}`, npc.desc, isImg ? npc.avatar : avatarHtml, isImg);
+              }
+            });
+            allNpcGrid.appendChild(card);
+          });
+        }
+      });
+      if (totalNpcs === 0) allNpcGrid.innerHTML = '<p style="color:#5a6e7d; grid-column: 1/-1; text-align:center; padding: 2rem; font-style:italic;">В мире пока нет NPC.</p>';
+    }
+
+    document.getElementById('openItemsBtn').addEventListener('click', () => {
+      renderItems(); allItemsModal.classList.add('open');
+      if (window.innerWidth <= 768) desktopMenu.classList.remove('show');
+    });
+    document.getElementById('closeAllItemsModal').addEventListener('click', () => allItemsModal.classList.remove('open'));
+
+    document.getElementById('openAddItemModal').addEventListener('click', () => {
+      document.getElementById('inpItemName').value = ''; document.getElementById('inpItemDesc').value = '';
+      itemPhotoPreview.style.display = 'none'; itemPhotoInput.value = ''; state.tempItemPhoto = "";
+      state.selectedItemIcon = "📦";
+      renderIconPicker(itemIconPicker, ITEM_ICONS, state.selectedItemIcon, (val) => { state.selectedItemIcon = val; state.tempItemPhoto = ""; itemPhotoPreview.style.display = 'none'; });
+      addItemModal.classList.add('open');
+    });
+    document.getElementById('cancelAddItem').addEventListener('click', () => addItemModal.classList.remove('open'));
+
+    function renderItems() {
+      allItemsGrid.innerHTML = '';
+      if (state.items.length === 0) {
+        allItemsGrid.innerHTML = '<p style="color:#5a6e7d; grid-column: 1/-1; text-align:center; padding: 2rem; font-style:italic;">Справочник пуст.</p>';
+        return;
+      }
+      state.items.forEach((item, idx) => {
+        const card = document.createElement('div'); card.className = 'big-npc-card';
+        let avatarHtml = '📦'; let isImg = false;
+        if (item.avatar) { isImg = item.avatar.startsWith('data:image'); avatarHtml = isImg ? `<img src="${item.avatar}" alt="">` : item.avatar; }
+        card.innerHTML = `
+          <div class="big-npc-avatar" style="border-color: var(--accent);">${avatarHtml}</div>
+          <div class="big-npc-info">
+            <h3 style="color: var(--accent);">${item.name}</h3>
+            <p>${item.desc || 'Нет описания.'}</p>
+            <button class="item-delete-btn" data-idx="${idx}">Удалить</button>
+          </div>
+        `;
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.item-delete-btn')) return;
+          openFullCard(item.name, 'Предмет', item.desc, isImg ? item.avatar : avatarHtml, isImg);
+        });
+        card.querySelector('.item-delete-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm(`Удалить предмет "${item.name}"?`)) {
+            state.items.splice(idx, 1); triggerSave(); renderItems();
+          }
+        });
+        allItemsGrid.appendChild(card);
+      });
+    }
+
+    document.getElementById('addItemBtn').addEventListener('click', () => {
+      const name = document.getElementById('inpItemName').value.trim();
+      const desc = document.getElementById('inpItemDesc').value.trim();
+      if (!name) return alert('Введите название предмета!');
+      const avatar = state.tempItemPhoto ? state.tempItemPhoto : state.selectedItemIcon;
+      state.items.push({ id: Date.now(), name, desc, avatar });
+      triggerSave(); renderItems(); addItemModal.classList.remove('open');
+    });
+
+    document.getElementById('openSearchBtn').addEventListener('click', () => {
+      searchModal.classList.add('open'); searchInput.value = ''; renderSearchResults('');
+      if (window.innerWidth <= 768) desktopMenu.classList.remove('show');
+    });
+    document.getElementById('closeSearchModal').addEventListener('click', () => searchModal.classList.remove('open'));
+    searchInput.addEventListener('input', (e) => renderSearchResults(e.target.value));
+
+    function renderSearchResults(query) {
+      searchResults.innerHTML = '';
+      const q = query.toLowerCase().trim();
+      if (!q) { searchResults.innerHTML = '<p style="color:#5a6e7d; text-align:center; font-style:italic;">Введите запрос...</p>'; return; }
+      let found = false;
+      state.cities.forEach(city => {
+        if (city.name.toLowerCase().includes(q) || (city.desc && city.desc.toLowerCase().includes(q))) {
+          found = true;
+          const el = document.createElement('div'); el.className = 'search-item';
+          el.innerHTML = `<span class="type">Локация</span><div class="title">${city.name}</div><div class="subtitle">${city.desc || ''}</div>`;
+          el.addEventListener('click', () => { searchModal.classList.remove('open'); openCityPanel(city); zoomToCity(city); });
+          searchResults.appendChild(el);
+        }
+        if (city.npcs) {
+          city.npcs.forEach(npc => {
+            if (npc.name.toLowerCase().includes(q) || (npc.desc && npc.desc.toLowerCase().includes(q))) {
+              found = true;
+              const el = document.createElement('div'); el.className = 'search-item';
+              el.innerHTML = `<span class="type">NPC в г. ${city.name}</span><div class="title">${npc.name}</div><div class="subtitle">${npc.desc || ''}</div>`;
+              el.addEventListener('click', () => { searchModal.classList.remove('open'); openCityPanel(city, npc.name); zoomToCity(city); });
+              searchResults.appendChild(el);
+            }
+          });
+        }
+      });
+      if (!found) searchResults.innerHTML = '<p style="color:#5a6e7d; text-align:center; font-style:italic;">Ничего не найдено.</p>';
+    }
+
+    initApp();
+
+  </script>
+</body>
+</html>
