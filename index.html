@@ -403,6 +403,7 @@
 
     <div class="controls">
       <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+      <button class="mobile-menu-btn" id="mobileResetBtn" style="display: none; margin-left: 10px;">⌖</button>
       <div class="desktop-menu" id="desktopMenu">
         
         <div class="menu-group open">
@@ -703,6 +704,7 @@
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileResetBtn = document.getElementById('mobileResetBtn');
     const desktopMenu = document.getElementById('desktopMenu');
     const createWorldModal = document.getElementById('createWorldModal');
     const worldCoverInput = document.getElementById('worldCoverInput');
@@ -948,6 +950,22 @@
         renderPins();
       }
       resetZoom();
+      
+      // АВТО-ЗУМ ДЛЯ ТЕЛЕФОНА (Масштаб 3x)
+      if (window.innerWidth <= 768 && state.currentBgBase64) {
+        setTimeout(() => {
+          const vw = viewport.clientWidth;
+          const vh = viewport.clientHeight;
+          const scale = 3.0; 
+          
+          // Центрируем карту
+          state.currentScale = scale;
+          state.currentX = (vw - (vw * scale)) / 2; 
+          state.currentY = (vh - (vh * scale)) / 2;
+          
+          world.style.transform = `translate(${state.currentX}px, ${state.currentY}px) scale(${scale})`;
+        }, 100);
+      }
     }
 
     btnBackToWorlds.addEventListener('click', () => {
@@ -1227,6 +1245,26 @@
     document.getElementById('resetZoom').addEventListener('click', resetZoom);
     document.getElementById('closePanel').addEventListener('click', resetZoom);
     closeFullCard.addEventListener('click', () => { fullCard.classList.remove('open'); viewport.classList.remove('shifted'); });
+
+    // Обработчик кнопки сброса на мобильном
+    if (window.innerWidth <= 768) {
+      mobileResetBtn.style.display = 'flex';
+    }
+    mobileResetBtn.addEventListener('click', () => {
+      resetZoom();
+      // Возвращаем телефонный зум по умолчанию (3x)
+      if (state.currentBgBase64) {
+        setTimeout(() => {
+          const vw = viewport.clientWidth;
+          const vh = viewport.clientHeight;
+          const scale = 3.0;
+          state.currentScale = scale;
+          state.currentX = (vw - (vw * scale)) / 2; 
+          state.currentY = (vh - (vh * scale)) / 2;
+          world.style.transform = `translate(${state.currentX}px, ${state.currentY}px) scale(${scale})`;
+        }, 50);
+      }
+    });
 
     function renderPins() {
       document.querySelectorAll('.city-pin').forEach(el => el.remove());
