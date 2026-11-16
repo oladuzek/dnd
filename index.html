@@ -126,13 +126,13 @@
   .top-bar {
     position: absolute; top: 0; left: 0; right: 0; height: 60px; background: var(--panel-bg);
     border-bottom: 1px solid var(--iron-light); display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+    padding: 0 20px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); backdrop-filter: blur(10px); gap: 15px;
   }
-  .current-world-name { font-family: var(--font-title); font-size: 1.5rem; color: #fff; display: flex; align-items: center; gap: 10px; }
+  .current-world-name { font-family: var(--font-title); font-size: 1.5rem; color: #fff; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; }
   .back-to-worlds-btn {
     background: transparent; border: 1px solid var(--iron-light); color: var(--text);
     padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-family: var(--font-title);
-    transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+    transition: all 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; flex-shrink: 0;
   }
   .back-to-worlds-btn:hover { background: var(--iron); color: #fff; border-color: var(--accent); }
 
@@ -140,19 +140,23 @@
   .map-viewport.grabbing { cursor: grabbing; } .map-viewport.master-mode { cursor: crosshair; }
   .map-viewport.shifted { transform: translateX(-30%); }
   
-  .map-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: transform 0.3s ease-out; transform-origin: 0 0; display: flex; align-items: center; justify-content: center; }
+  .map-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: transform 0.3s ease-out; transform-origin: 0 0; }
   .map-world.dragging { transition: none; }
   
-  #mapWrapper { position: absolute; display: block; pointer-events: none; }
-  #mapBg { display: block; width: 100%; height: 100%; object-fit: fill; user-select: none; opacity: 0; transition: opacity 0.5s; filter: brightness(0.8) contrast(1.2); pointer-events: none; }
+  /* Контейнер для карты: строго пропорционален картинке */
+  #mapWrapper { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  #mapImageContainer { position: relative; pointer-events: auto; max-width: 100%; max-height: 100%; }
+  
+  #mapBg { display: block; width: 100%; height: 100%; user-select: none; opacity: 0; transition: opacity 0.5s; filter: brightness(0.8) contrast(1.2); pointer-events: none; }
   #drawCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
   #drawCanvas.active { pointer-events: auto; cursor: crosshair; }
 
-  /* Иконка города */
   .city-pin { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 10; pointer-events: auto; }
   .pin-icon { font-size: 1.5rem; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle, rgba(42, 48, 56, 0.8) 0%, transparent 70%); box-shadow: 0 0 10px rgba(0,0,0,0.8); filter: drop-shadow(0 0 5px var(--accent-glow)); }
   .pin-icon img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid var(--iron-light); }
-  .pin-label { background: rgba(20, 24, 28, 0.95); color: var(--accent); padding: 3px 10px; font-family: var(--font-title); font-size: 0.8rem; border: 1px solid var(--iron-light); white-space: nowrap; margin-top: 4px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1); letter-spacing: 1px; }
+  
+  /* Исправлен label: теперь текст переносится */
+  .pin-label { background: rgba(20, 24, 28, 0.95); color: var(--accent); padding: 3px 10px; font-family: var(--font-title); font-size: 0.8rem; border: 1px solid var(--iron-light); white-space: normal; text-align: center; max-width: 180px; word-wrap: break-word; margin-top: 4px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1); letter-spacing: 1px; }
 
   .quick-delete-city { position: absolute; top: -10px; right: -10px; background: var(--blood); color: #fff; border: 1px solid var(--iron-light); border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 30; font-family: var(--font-title); }
   .city-pin:hover .quick-delete-city { display: flex; }
@@ -163,8 +167,8 @@
   .panel-header { padding: 2.5rem 1.5rem 1.5rem; border-bottom: 1px solid rgba(74, 85, 99, 0.3); position: relative; }
   .close-btn { position: absolute; top: 1.5rem; right: 1.5rem; z-index: 1000; background: var(--iron); border: 2px solid var(--iron-light); color: var(--accent); font-size: 1.2rem; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.8); }
   .close-btn:hover { color: #fff; background: var(--blood); border-color: var(--blood-light); box-shadow: 0 0 15px rgba(168, 32, 32, 0.8); }
-  .panel-title { font-family: var(--font-title); font-weight: 900; font-size: 1.8rem; color: #fff; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); padding-right: 40px; display: flex; align-items: center; gap: 15px; }
-  .panel-title .title-icon img { width: 48px; height: 48px; object-fit: cover; border-radius: 50%; border: 2px solid var(--iron-light); }
+  .panel-title { font-family: var(--font-title); font-weight: 900; font-size: 1.8rem; color: #fff; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); padding-right: 40px; display: flex; align-items: center; gap: 15px; word-wrap: break-word; white-space: normal; }
+  .panel-title .title-icon img { width: 48px; height: 48px; object-fit: cover; border-radius: 50%; border: 2px solid var(--iron-light); flex-shrink: 0; }
   .panel-desc { color: var(--text); font-size: 1.1rem; line-height: 1.5; margin-bottom: 1.5rem; font-style: italic; opacity: 0.8; }
   .panel-actions { display: flex; gap: 12px; position: relative; z-index: 1000; }
   .edit-btn, .delete-city-btn { background: linear-gradient(180deg, var(--iron-light), var(--iron)); border: 1px solid var(--iron-light); color: var(--accent); padding: 0.6rem 1rem; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; flex: 1; font-family: var(--font-title); letter-spacing: 1px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
@@ -281,7 +285,7 @@
 
   @media (max-width: 768px) {
     .worlds-grid { grid-template-columns: 1fr; }
-    .top-bar { padding: 0 10px; }
+    .top-bar { padding: 0 10px; gap: 10px; }
     .current-world-name { font-size: 1.1rem; }
     .back-to-worlds-btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
     .map-viewport.shifted { transform: none; }
@@ -309,8 +313,11 @@
     .big-npc-avatar { width: 60px; height: 60px; font-size: 1.8rem; }
     .big-npc-info h3 { font-size: 1.1rem; }
     .big-npc-info p { font-size: 0.9rem; margin-bottom: 0.5rem; }
-    #syncStatus { top: 75px; right: 15px; font-size: 0.7rem; padding: 5px 10px; }
-    #saveBgBtn { bottom: 15px; font-size: 0.9rem; padding: 0.6rem 1.2rem; width: auto; min-width: 80%; }
+    
+    /* Перенос статуса подключения вниз, чтобы не мешал */
+    #syncStatus { top: auto; bottom: 15px; right: 15px; font-size: 0.7rem; padding: 5px 10px; z-index: 100; }
+    
+    #saveBgBtn { bottom: 60px; font-size: 0.9rem; padding: 0.6rem 1.2rem; width: auto; min-width: 80%; }
   }
 </style>
 </head>
@@ -337,8 +344,10 @@
     <div class="map-viewport" id="viewport">
       <div class="map-world" id="world">
         <div id="mapWrapper">
-          <img id="mapBg" src="" alt="Карта" onload="onMapLoaded()">
-          <canvas id="drawCanvas"></canvas>
+          <div id="mapImageContainer">
+            <img id="mapBg" src="" alt="Карта" onload="onMapLoaded()">
+            <canvas id="drawCanvas"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -623,6 +632,7 @@
     const viewport = document.getElementById('viewport');
     const world = document.getElementById('world');
     const mapWrapper = document.getElementById('mapWrapper');
+    const mapImageContainer = document.getElementById('mapImageContainer');
     const mapBg = document.getElementById('mapBg');
     const drawCanvas = document.getElementById('drawCanvas');
     const ctx = drawCanvas.getContext('2d');
@@ -972,26 +982,21 @@
       if (!mapBg.naturalWidth) return;
       const vw = viewport.clientWidth; const vh = viewport.clientHeight;
       const imgW = mapBg.naturalWidth; const imgH = mapBg.naturalHeight;
-      
-      // Рассчитываем размеры так, чтобы карта вписывалась в экран, но не искажалась
       const imgRatio = imgW / imgH; 
       const boxRatio = vw / vh;
 
+      // Контейнер карты строго соответствует пропорциям картинки
       if (imgRatio > boxRatio) {
         // Карта шире экрана
-        mapWrapper.style.width = '100%'; 
-        mapWrapper.style.height = `${vw / imgRatio}px`; 
+        mapImageContainer.style.width = '100%'; 
+        mapImageContainer.style.height = 'auto'; 
+        mapImageContainer.style.aspectRatio = `${imgW} / ${imgH}`;
       } else {
         // Карта выше экрана
-        mapWrapper.style.height = '100%'; 
-        mapWrapper.style.width = `${vh * imgRatio}px`; 
+        mapImageContainer.style.height = '100%'; 
+        mapImageContainer.style.width = 'auto'; 
+        mapImageContainer.style.aspectRatio = `${imgW} / ${imgH}`;
       }
-      
-      // Центрируем карту внутри вьюпорта
-      mapWrapper.style.position = 'absolute';
-      mapWrapper.style.left = '50%';
-      mapWrapper.style.top = '50%';
-      mapWrapper.style.transform = 'translate(-50%, -50%)';
       
       // Сбрасываем зум
       world.style.transform = `translate(0px, 0px) scale(1)`;
@@ -1002,9 +1007,9 @@
     };
 
     function resizeCanvas() {
-      if (!mapWrapper.clientWidth) return;
-      drawCanvas.width = mapWrapper.clientWidth;
-      drawCanvas.height = mapWrapper.clientHeight;
+      if (!mapImageContainer.clientWidth) return;
+      drawCanvas.width = mapImageContainer.clientWidth;
+      drawCanvas.height = mapImageContainer.clientHeight;
     }
     window.addEventListener('resize', () => { if (mapBg.src) onMapLoaded(); });
 
@@ -1150,31 +1155,37 @@
       window._wheelTimeout = setTimeout(() => { world.classList.remove('dragging'); }, 150);
     }, { passive: false });
 
+    // ИСПРАВЛЕННЫЙ ЗУМ (теперь точно центрирует город)
     function zoomToCity(city) {
       const vw = viewport.clientWidth; 
       const vh = viewport.clientHeight;
       const isMobile = window.innerWidth <= 768;
-      const offsetX = isMobile ? 0 : 200; 
-      const offsetY = 0; 
+      // Сдвиг для десктопа, чтобы учесть выезжающую панель справа (400px)
+      const offsetX = isMobile ? 0 : 400; 
       const scale = 2.5;
       
-      if (!mapWrapper.clientWidth) return;
+      const rect = mapImageContainer.getBoundingClientRect();
+      const viewportRect = viewport.getBoundingClientRect();
 
-      const cityX = mapWrapper.offsetLeft + (city.x / 100) * mapWrapper.clientWidth; 
-      const cityY = mapWrapper.offsetTop + (city.y / 100) * mapWrapper.clientHeight;
-      
-      let tx = ((vw - offsetX) / 2) - (cityX * scale);
-      let ty = ((vh - offsetY) / 2) - (cityY * scale);
-      
-      tx = Math.min(0, Math.max(vw - (vw * scale), tx));
-      ty = Math.min(0, Math.max(vh - (vh * scale), ty));
-      
-      state.currentScale = scale; 
-      state.currentX = tx; 
-      state.currentY = ty;
+      // Координаты города на экране
+      const cityScreenX = rect.left + (city.x / 100) * rect.width;
+      const cityScreenY = rect.top + (city.y / 100) * rect.height;
+
+      // Координаты города внутри "мира" (до применения зума)
+      const cityWorldX = (cityScreenX - viewportRect.left - state.currentX) / state.currentScale;
+      const cityWorldY = (cityScreenY - viewportRect.top - state.currentY) / state.currentScale;
+
+      // Целевые координаты (центр экрана за вычетом панели)
+      const targetX = (vw - offsetX) / 2;
+      const targetY = vh / 2;
+
+      // Новое смещение
+      state.currentScale = scale;
+      state.currentX = targetX - cityWorldX * scale;
+      state.currentY = targetY - cityWorldY * scale;
       
       requestAnimationFrame(() => {
-        world.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+        world.style.transform = `translate(${state.currentX}px, ${state.currentY}px) scale(${scale})`;
       });
     }
 
@@ -1223,7 +1234,7 @@
           zoomToCity(city);
           if (window.innerWidth <= 768) desktopMenu.classList.remove('show');
         });
-        mapWrapper.appendChild(pin);
+        mapImageContainer.appendChild(pin); // Добавляем строго в контейнер карты!
       });
     }
 
@@ -1319,22 +1330,18 @@
       });
     }
 
+    // ИСПРАВЛЕННЫЙ КЛИК (координаты берутся строго от картинки)
     viewport.addEventListener('click', (e) => {
       if (!state.isMasterMode || state.isDrawMode) return;
       if (e.target.closest('.city-pin') || e.target.closest('.city-panel') || e.target.closest('.controls')) return;
       if (hasMoved) { hasMoved = false; return; }
       
-      const rect = viewport.getBoundingClientRect();
-      const clickX = e.clientX - rect.left; 
-      const clickY = e.clientY - rect.top;
-      
-      // Получаем координаты клика относительно самой карты (а не экрана)
-      const mapRect = mapWrapper.getBoundingClientRect();
+      const mapRect = mapImageContainer.getBoundingClientRect();
       const wrapperX = e.clientX - mapRect.left; 
       const wrapperY = e.clientY - mapRect.top;
       
-      const xPercent = (wrapperX / mapWrapper.clientWidth) * 100; 
-      const yPercent = (wrapperY / mapWrapper.clientHeight) * 100;
+      const xPercent = (wrapperX / mapRect.width) * 100; 
+      const yPercent = (wrapperY / mapRect.height) * 100;
 
       if (xPercent < 0 || xPercent > 100 || yPercent < 0 || yPercent > 100) return;
 
