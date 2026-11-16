@@ -136,7 +136,7 @@
   }
   .back-to-worlds-btn:hover { background: var(--iron); color: #fff; border-color: var(--accent); }
 
-  .map-viewport { position: absolute; top: 60px; left: 0; right: 0; bottom: 0; overflow: hidden; background: transparent; cursor: grab; touch-action: none; z-index: 1; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
+    .map-viewport { position: absolute; top: 55px; left: 0; right: 0; bottom: 0; overflow: hidden; background: transparent; cursor: grab; touch-action: none; z-index: 1; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
   .map-viewport.grabbing { cursor: grabbing; } .map-viewport.master-mode { cursor: crosshair; }
   .map-viewport.shifted { transform: translateX(-30%); }
   
@@ -968,22 +968,32 @@
     document.getElementById('closeWorldDescModal').addEventListener('click', () => worldDescModal.classList.remove('open'));
 
     // Map Logic
-    window.onMapLoaded = function() {
+        window.onMapLoaded = function() {
       if (!mapBg.naturalWidth) return;
       const vw = viewport.clientWidth; const vh = viewport.clientHeight;
       const imgW = mapBg.naturalWidth; const imgH = mapBg.naturalHeight;
-      const imgRatio = imgW / imgH; const boxRatio = vw / vh;
+      
+      // Рассчитываем размеры так, чтобы карта вписывалась в экран, но не искажалась
+      const imgRatio = imgW / imgH; 
+      const boxRatio = vw / vh;
 
       if (imgRatio > boxRatio) {
+        // Карта шире экрана
         mapWrapper.style.width = '100%'; 
-        mapWrapper.style.height = 'auto'; 
-        mapWrapper.style.aspectRatio = `${imgW} / ${imgH}`;
+        mapWrapper.style.height = `${vw / imgRatio}px`; 
       } else {
+        // Карта выше экрана
         mapWrapper.style.height = '100%'; 
-        mapWrapper.style.width = 'auto'; 
-        mapWrapper.style.aspectRatio = `${imgW} / ${imgH}`;
+        mapWrapper.style.width = `${vh * imgRatio}px`; 
       }
       
+      // Центрируем карту внутри вьюпорта
+      mapWrapper.style.position = 'absolute';
+      mapWrapper.style.left = '50%';
+      mapWrapper.style.top = '50%';
+      mapWrapper.style.transform = 'translate(-50%, -50%)';
+      
+      // Сбрасываем зум
       world.style.transform = `translate(0px, 0px) scale(1)`;
       state.currentX = 0; state.currentY = 0; state.currentScale = 1;
 
@@ -1309,19 +1319,26 @@
       });
     }
 
-    viewport.addEventListener('click', (e) => {
+        viewport.addEventListener('click', (e) => {
       if (!state.isMasterMode || state.isDrawMode) return;
       if (e.target.closest('.city-pin') || e.target.closest('.city-panel') || e.target.closest('.controls')) return;
       if (hasMoved) { hasMoved = false; return; }
       
       const rect = viewport.getBoundingClientRect();
-      const clickX = e.clientX - rect.left; const clickY = e.clientY - rect.top;
-      const worldX = (clickX - state.currentX) / state.currentScale; const worldY = (clickY - state.currentY) / state.currentScale;
-      const wrapperX = worldX - mapWrapper.offsetLeft; const wrapperY = worldY - mapWrapper.offsetTop;
-      const xPercent = (wrapperX / mapWrapper.clientWidth) * 100; const yPercent = (wrapperY / mapWrapper.clientHeight) * 100;
+      const clickX = e.clientX - rect.left; 
+      const clickY = e.clientY - rect.top;
+      
+      // Получаем координаты клика относительно самой карты (а не экрана)
+      const mapRect = mapWrapper.getBoundingClientRect();
+      const wrapperX = e.clientX - mapRect.left; 
+      const wrapperY = e.clientY - mapRect.top;
+      
+      const xPercent = (wrapperX / mapWrapper.clientWidth) * 100; 
+      const yPercent = (wrapperY / mapWrapper.clientHeight) * 100;
 
       if (xPercent < 0 || xPercent > 100 || yPercent < 0 || yPercent > 100) return;
-
+      
+      // ... дальше идет открытие модалки (state.tempCoord = ... и т.д.)
       state.tempCoord = { x: xPercent, y: yPercent };
       state.editingCityId = null; state.tempNpcs = []; state.tempCityPhoto = ""; state.tempNpcPhoto = "";
       
