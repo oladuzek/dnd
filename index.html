@@ -312,10 +312,31 @@
     .big-npc-info h3 { font-size: 1.1rem; }
     .big-npc-info p { font-size: 0.9rem; margin-bottom: 0.5rem; }
     
-    /* Уменьшаем иконки и подписи городов на телефонах */
-    .pin-icon { width: 24px; height: 24px; font-size: 1rem; box-shadow: 0 0 5px rgba(0,0,0,0.8); }
-    .pin-label { font-size: 0.65rem; padding: 2px 6px; margin-top: 2px; max-width: 120px; }
-    .quick-delete-city { width: 18px; height: 18px; font-size: 10px; top: -6px; right: -6px; }
+        /* ЖЕСТКОЕ УМЕНЬШЕНИЕ ИКОНОК НА ТЕЛЕФОНЕ */
+    .pin-icon { 
+      width: 20px !important; 
+      height: 20px !important; 
+      font-size: 12px !important; 
+      box-shadow: none !important; 
+    }
+    .pin-label { 
+      font-size: 8px !important; 
+      padding: 1px 4px !important; 
+      margin-top: 1px !important; 
+      max-width: 80px !important; 
+      line-height: 1.1 !important;
+      -webkit-text-size-adjust: none !important;
+      text-size-adjust: none !important;
+    }
+    .quick-delete-city { 
+      width: 14px !important; 
+      height: 14px !important; 
+      font-size: 8px !important; 
+      top: -4px !important; 
+      right: -4px !important; 
+      -webkit-text-size-adjust: none !important;
+      text-size-adjust: none !important;
+    }
 
     /* Перенос статуса подключения вниз, чтобы не мешал */
     #syncStatus { top: auto; bottom: 15px; right: 15px; font-size: 0.7rem; padding: 5px 10px; z-index: 100; }
