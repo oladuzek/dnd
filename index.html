@@ -968,17 +968,27 @@
     document.getElementById('closeWorldDescModal').addEventListener('click', () => worldDescModal.classList.remove('open'));
 
     // Map Logic
-    window.onMapLoaded = function() {
+        window.onMapLoaded = function() {
       if (!mapBg.naturalWidth) return;
       const vw = viewport.clientWidth; const vh = viewport.clientHeight;
       const imgW = mapBg.naturalWidth; const imgH = mapBg.naturalHeight;
       const imgRatio = imgW / imgH; const boxRatio = vw / vh;
 
+      // Жестко фиксируем размеры в зависимости от пропорций экрана
       if (imgRatio > boxRatio) {
-        mapWrapper.style.width = '100%'; mapWrapper.style.height = 'auto'; mapWrapper.style.aspectRatio = `${imgW} / ${imgH}`;
+        mapWrapper.style.width = '100%'; 
+        mapWrapper.style.height = 'auto'; 
+        mapWrapper.style.aspectRatio = `${imgW} / ${imgH}`;
       } else {
-        mapWrapper.style.height = '100%'; mapWrapper.style.width = 'auto'; mapWrapper.style.aspectRatio = `${imgW} / ${imgH}`;
+        mapWrapper.style.height = '100%'; 
+        mapWrapper.style.width = 'auto'; 
+        mapWrapper.style.aspectRatio = `${imgW} / ${imgH}`;
       }
+      
+      // Сбрасываем трансформации, чтобы не было смещений
+      world.style.transform = `translate(0px, 0px) scale(1)`;
+      state.currentX = 0; state.currentY = 0; state.currentScale = 1;
+
       resizeCanvas();
       renderPins(); 
     };
@@ -1132,19 +1142,33 @@
       window._wheelTimeout = setTimeout(() => { world.classList.remove('dragging'); }, 150);
     }, { passive: false });
 
-    function zoomToCity(city) {
-        const vw = viewport.clientWidth; const vh = viewport.clientHeight;
-        const isMobile = vw <= 768;
-        const offsetX = isMobile ? 0 : 200; const offsetY = isMobile ? 100 : 0; 
-        const scale = 2.5;
-        const cityX = mapWrapper.offsetLeft + (city.x / 100) * mapWrapper.clientWidth; 
-        const cityY = mapWrapper.offsetTop + (city.y / 100) * mapWrapper.clientHeight;
-        let tx = ((vw - offsetX) / 2) - (cityX * scale);
-        let ty = ((vh + offsetY) / 2) - (cityY * scale);
-        tx = Math.min(0, Math.max(vw - (vw * scale), tx));
-        ty = Math.min(0, Math.max(vh - (vh * scale), ty));
-        state.currentScale = scale; state.currentX = tx; state.currentY = ty;
+        function zoomToCity(city) {
+      const vw = viewport.clientWidth; const vh = viewport.clientHeight;
+      const isMobile = vw <= 768;
+      const offsetX = isMobile ? 0 : 200; 
+      const offsetY = isMobile ? 100 : 0; 
+      const scale = 2.5;
+      
+      // Жестко привязываемся к размерам самой карты (а не всего экрана)
+      const cityX = mapWrapper.offsetLeft + (city.x / 100) * mapWrapper.clientWidth; 
+      const cityY = mapWrapper.offsetTop + (city.y / 100) * mapWrapper.clientHeight;
+      
+      // Вычисляем смещение с учетом зума
+      let tx = ((vw - offsetX) / 2) - (cityX * scale);
+      let ty = ((vh + offsetY) / 2) - (cityY * scale);
+      
+      // Ограничиваем перемещение
+      tx = Math.min(0, Math.max(vw - (vw * scale), tx));
+      ty = Math.min(0, Math.max(vh - (vh * scale), ty));
+      
+      state.currentScale = scale; 
+      state.currentX = tx; 
+      state.currentY = ty;
+      
+      // Применяем с задержкой, чтобы DOM успел перестроиться
+      requestAnimationFrame(() => {
         world.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+      });
     }
 
     function resetZoom() {
@@ -1580,7 +1604,11 @@
       });
       if (!found) searchResults.innerHTML = '<p style="color:#5a6e7d; text-align:center; font-style:italic;">Ничего не найдено.</p>';
     }
-
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        if (mapBg.src) onMapLoaded();
+      }, 300);
+    });
     initApp();
 
   </script>
