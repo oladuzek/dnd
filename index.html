@@ -136,15 +136,15 @@
   }
   .back-to-worlds-btn:hover { background: var(--iron); color: #fff; border-color: var(--accent); }
 
-    .map-viewport { position: absolute; top: 55px; left: 0; right: 0; bottom: 0; overflow: hidden; background: transparent; cursor: grab; touch-action: none; z-index: 1; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
+  .map-viewport { position: absolute; top: 60px; left: 0; right: 0; bottom: 0; overflow: hidden; background: transparent; cursor: grab; touch-action: none; z-index: 1; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
   .map-viewport.grabbing { cursor: grabbing; } .map-viewport.master-mode { cursor: crosshair; }
   .map-viewport.shifted { transform: translateX(-30%); }
   
   .map-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: transform 0.3s ease-out; transform-origin: 0 0; display: flex; align-items: center; justify-content: center; }
   .map-world.dragging { transition: none; }
   
-  #mapWrapper { position: relative; display: block; max-width: 100%; max-height: 100%; pointer-events: none; }
-  #mapBg { max-width: 100%; max-height: 100%; display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; opacity: 0; transition: opacity 0.5s; filter: brightness(0.8) contrast(1.2); pointer-events: none; }
+  #mapWrapper { position: absolute; display: block; pointer-events: none; }
+  #mapBg { display: block; width: 100%; height: 100%; object-fit: fill; user-select: none; opacity: 0; transition: opacity 0.5s; filter: brightness(0.8) contrast(1.2); pointer-events: none; }
   #drawCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
   #drawCanvas.active { pointer-events: auto; cursor: crosshair; }
 
@@ -285,7 +285,7 @@
     .current-world-name { font-size: 1.1rem; }
     .back-to-worlds-btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
     .map-viewport.shifted { transform: none; }
-    .map-viewport { top: 55px; bottom: 0; -webkit-overflow-scrolling: touch; }
+    .map-viewport { top: 55px; bottom: 0; }
     .full-card { width: 100%; right: -100%; }
     .full-card.open { right: 0; }
     .full-card-content { flex-direction: column; align-items: center; text-align: center; }
@@ -968,7 +968,7 @@
     document.getElementById('closeWorldDescModal').addEventListener('click', () => worldDescModal.classList.remove('open'));
 
     // Map Logic
-        window.onMapLoaded = function() {
+    window.onMapLoaded = function() {
       if (!mapBg.naturalWidth) return;
       const vw = viewport.clientWidth; const vh = viewport.clientHeight;
       const imgW = mapBg.naturalWidth; const imgH = mapBg.naturalHeight;
@@ -1319,7 +1319,7 @@
       });
     }
 
-        viewport.addEventListener('click', (e) => {
+    viewport.addEventListener('click', (e) => {
       if (!state.isMasterMode || state.isDrawMode) return;
       if (e.target.closest('.city-pin') || e.target.closest('.city-panel') || e.target.closest('.controls')) return;
       if (hasMoved) { hasMoved = false; return; }
@@ -1337,8 +1337,7 @@
       const yPercent = (wrapperY / mapWrapper.clientHeight) * 100;
 
       if (xPercent < 0 || xPercent > 100 || yPercent < 0 || yPercent > 100) return;
-      
-      // ... дальше идет открытие модалки (state.tempCoord = ... и т.д.)
+
       state.tempCoord = { x: xPercent, y: yPercent };
       state.editingCityId = null; state.tempNpcs = []; state.tempCityPhoto = ""; state.tempNpcPhoto = "";
       
