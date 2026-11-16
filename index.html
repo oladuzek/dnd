@@ -710,23 +710,50 @@
     }
 
     // Init
-    async function initApp() {
+        async function initApp() {
       try {
         const { data, error } = await supabase.from('map_data').select('*').eq('id', 1).single();
-        if (error || !data || !data.data || !data.data.worlds) {
-          await supabase.from('map_data').upsert({ id: 1, data: { worlds: [] } });
-          state.worlds = [];
-        } else {
+        
+        // ЗАЩИТА: если сайт не смог загрузить базу, он НЕ стирает её
+        if (error) {
+          console.error("Ошибка загрузки:", error);
+          syncStatus.textContent = "Ошибка сети. Данные не тронуты.";
+          syncStatus.style.color = "#ff5555";
+          
+          // Пробуем взять копию из памяти браузера
+          const localBackup = localStorage.getItem('dnd_worlds_backup');
+          if (localBackup) {
+            state.worlds = JSON.parse(localBackup);
+            alert("Восстановлены данные из памяти браузера!");
+          } else {
+            state.worlds = [];
+          }
+          state.isLoaded = true;
+          renderWorldsScreen();
+          return;
+        }
+
+        if (data && data.data && data.data.worlds) {
           state.worlds = data.data.worlds;
+          // Делаем копию в браузере
+          localStorage.setItem('dnd_worlds_backup', JSON.stringify(state.worlds));
+        } else {
+          state.worlds = [];
         }
         
         state.isLoaded = true;
         renderWorldsScreen();
         
+        // Подписка на обновления
         supabase.channel('map_updates')
           .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'map_data' }, (payload) => {
-            if (payload.new && payload.new.data) {
-              state.worlds = payload.new.data.worlds || [];
+            if (payload.new && payload.new.data && Array.isArray(payload.new.data.worlds)) {
+              // Если кто-то прислал пустой список, а у нас есть данные - игнорируем
+              if (payload.new.data.worlds.length === 0 && state.worlds.length > 0) return;
+              
+              state.worlds = payload.new.data.worlds;
+              localStorage.setItem('dnd_worlds_backup', JSON.stringify(state.worlds));
+              
               if (!state.currentWorld) {
                 renderWorldsScreen();
               } else {
@@ -751,7 +778,9 @@
               }
             }
           }).subscribe();
-      } catch (err) { console.error("Ошибка:", err); }
+      } catch (err) { 
+        console.error("Критическая ошибка:", err); 
+      }
     }
 
     // Worlds Screen
@@ -895,20 +924,38 @@
       renderWorldsScreen();
     });
 
-    async function saveCurrentWorldData() {
+        async function saveCurrentWorldData() {
       if (!state.currentWorld) return;
       const wIndex = state.worlds.findIndex(w => w.id === state.currentWorld.id);
       if (wIndex !== -1) {
         state.worlds[wIndex].cities = state.cities;
         state.worlds[wIndex].items = state.items;
         state.worlds[wIndex].background = state.currentBgBase64;
-        await supabase.from('map_data').upsert({ id: 1, data: { worlds: state.worlds } });
-        syncStatus.textContent = "Сохранено ✅";
+        
+        // Сохраняем копию в браузер перед отправкой в базу
+        localStorage.setItem('dnd_worlds_backup', JSON.stringify(state.worlds));
+
+        const { error } = await supabase.from('map_data').upsert({ id: 1, data: { worlds: state.worlds } });
+        if (error) {
+          syncStatus.textContent = "Ошибка сохранения ❌";
+          syncStatus.style.color = "#ff5555";
+        } else {
+          syncStatus.textContent = "Сохранено ✅";
+          syncStatus.style.color = "var(--accent)";
+        }
       }
     }
 
+        let saveTimeout;
     function triggerSave() {
-      saveCurrentWorldData();
+      clearTimeout(saveTimeout);
+      syncStatus.textContent = "Сохранение... ⏳";
+      syncStatus.style.color = "var(--accent)";
+      
+      // Ждем полсекунды перед отправкой, чтобы не спамить базу
+      saveTimeout = setTimeout(() => {
+        saveCurrentWorldData();
+      }, 500);
     }
 
     // Описание мира
