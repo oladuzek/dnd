@@ -148,11 +148,11 @@
   #drawCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
   #drawCanvas.active { pointer-events: auto; cursor: crosshair; }
 
-  .city-pin { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; z-index: 10; pointer-events: auto; }
+  .city-pin { position: absolute; transform: translate(-50%, -100%) scale(0.8); display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; z-index: 10; pointer-events: auto; }
   .city-pin:hover { transform: translate(-50%, -100%) scale(1.15); z-index: 20; }
   .pin-icon { font-size: 2.5rem; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(circle, rgba(42, 48, 56, 0.8) 0%, transparent 70%); box-shadow: 0 0 15px rgba(0,0,0,0.8); filter: drop-shadow(0 0 10px var(--accent-glow)); transition: filter 0.2s; }
   .city-pin:hover .pin-icon { filter: drop-shadow(0 0 20px rgba(168, 32, 32, 0.8)); }
-  .pin-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid var(--iron-light); }
+  .pin-icon img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid var(--iron-light); }
   .pin-label { background: rgba(20, 24, 28, 0.95); color: var(--accent); padding: 5px 15px; font-family: var(--font-title); font-size: 0.9rem; border: 1px solid var(--iron-light); white-space: nowrap; margin-top: 8px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1); letter-spacing: 1px; }
 
   .quick-delete-city { position: absolute; top: -10px; right: -10px; background: var(--blood); color: #fff; border: 1px solid var(--iron-light); border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 30; font-family: var(--font-title); }
@@ -286,6 +286,7 @@
     .current-world-name { font-size: 1.1rem; }
     .back-to-worlds-btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
     .map-viewport.shifted { transform: none; }
+    .map-viewport { top: 55px; bottom: 0; -webkit-overflow-scrolling: touch; }
     .full-card { width: 100%; right: -100%; }
     .full-card.open { right: 0; }
     .full-card-content { flex-direction: column; align-items: center; text-align: center; }
@@ -710,17 +711,15 @@
     }
 
     // Init
-        async function initApp() {
+    async function initApp() {
       try {
         const { data, error } = await supabase.from('map_data').select('*').eq('id', 1).single();
         
-        // ЗАЩИТА: если сайт не смог загрузить базу, он НЕ стирает её
         if (error) {
           console.error("Ошибка загрузки:", error);
           syncStatus.textContent = "Ошибка сети. Данные не тронуты.";
           syncStatus.style.color = "#ff5555";
           
-          // Пробуем взять копию из памяти браузера
           const localBackup = localStorage.getItem('dnd_worlds_backup');
           if (localBackup) {
             state.worlds = JSON.parse(localBackup);
@@ -735,7 +734,6 @@
 
         if (data && data.data && data.data.worlds) {
           state.worlds = data.data.worlds;
-          // Делаем копию в браузере
           localStorage.setItem('dnd_worlds_backup', JSON.stringify(state.worlds));
         } else {
           state.worlds = [];
@@ -744,11 +742,14 @@
         state.isLoaded = true;
         renderWorldsScreen();
         
-        // Подписка на обновления
+        const savedWorldId = localStorage.getItem('dnd_current_world_id');
+        if (savedWorldId && state.worlds.find(w => w.id == savedWorldId)) {
+          enterWorld(parseInt(savedWorldId));
+        }
+        
         supabase.channel('map_updates')
           .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'map_data' }, (payload) => {
             if (payload.new && payload.new.data && Array.isArray(payload.new.data.worlds)) {
-              // Если кто-то прислал пустой список, а у нас есть данные - игнорируем
               if (payload.new.data.worlds.length === 0 && state.worlds.length > 0) return;
               
               state.worlds = payload.new.data.worlds;
@@ -887,6 +888,7 @@
     }
 
     function enterWorld(worldId) {
+      localStorage.setItem('dnd_current_world_id', worldId);
       const w = state.worlds.find(w => w.id === worldId);
       if (!w) return;
 
@@ -916,6 +918,7 @@
     }
 
     btnBackToWorlds.addEventListener('click', () => {
+      localStorage.removeItem('dnd_current_world_id');
       state.currentWorld = null;
       resetZoom();
       applyTheme('dark');
@@ -924,7 +927,7 @@
       renderWorldsScreen();
     });
 
-        async function saveCurrentWorldData() {
+    async function saveCurrentWorldData() {
       if (!state.currentWorld) return;
       const wIndex = state.worlds.findIndex(w => w.id === state.currentWorld.id);
       if (wIndex !== -1) {
@@ -932,7 +935,6 @@
         state.worlds[wIndex].items = state.items;
         state.worlds[wIndex].background = state.currentBgBase64;
         
-        // Сохраняем копию в браузер перед отправкой в базу
         localStorage.setItem('dnd_worlds_backup', JSON.stringify(state.worlds));
 
         const { error } = await supabase.from('map_data').upsert({ id: 1, data: { worlds: state.worlds } });
@@ -946,13 +948,12 @@
       }
     }
 
-        let saveTimeout;
+    let saveTimeout;
     function triggerSave() {
       clearTimeout(saveTimeout);
       syncStatus.textContent = "Сохранение... ⏳";
       syncStatus.style.color = "var(--accent)";
       
-      // Ждем полсекунды перед отправкой, чтобы не спамить базу
       saveTimeout = setTimeout(() => {
         saveCurrentWorldData();
       }, 500);
@@ -968,13 +969,12 @@
     document.getElementById('closeWorldDescModal').addEventListener('click', () => worldDescModal.classList.remove('open'));
 
     // Map Logic
-        window.onMapLoaded = function() {
+    window.onMapLoaded = function() {
       if (!mapBg.naturalWidth) return;
       const vw = viewport.clientWidth; const vh = viewport.clientHeight;
       const imgW = mapBg.naturalWidth; const imgH = mapBg.naturalHeight;
       const imgRatio = imgW / imgH; const boxRatio = vw / vh;
 
-      // Жестко фиксируем размеры в зависимости от пропорций экрана
       if (imgRatio > boxRatio) {
         mapWrapper.style.width = '100%'; 
         mapWrapper.style.height = 'auto'; 
@@ -985,7 +985,6 @@
         mapWrapper.style.aspectRatio = `${imgW} / ${imgH}`;
       }
       
-      // Сбрасываем трансформации, чтобы не было смещений
       world.style.transform = `translate(0px, 0px) scale(1)`;
       state.currentX = 0; state.currentY = 0; state.currentScale = 1;
 
@@ -1142,22 +1141,19 @@
       window._wheelTimeout = setTimeout(() => { world.classList.remove('dragging'); }, 150);
     }, { passive: false });
 
-        function zoomToCity(city) {
+    function zoomToCity(city) {
       const vw = viewport.clientWidth; const vh = viewport.clientHeight;
       const isMobile = vw <= 768;
       const offsetX = isMobile ? 0 : 200; 
       const offsetY = isMobile ? 100 : 0; 
       const scale = 2.5;
       
-      // Жестко привязываемся к размерам самой карты (а не всего экрана)
       const cityX = mapWrapper.offsetLeft + (city.x / 100) * mapWrapper.clientWidth; 
       const cityY = mapWrapper.offsetTop + (city.y / 100) * mapWrapper.clientHeight;
       
-      // Вычисляем смещение с учетом зума
       let tx = ((vw - offsetX) / 2) - (cityX * scale);
       let ty = ((vh + offsetY) / 2) - (cityY * scale);
       
-      // Ограничиваем перемещение
       tx = Math.min(0, Math.max(vw - (vw * scale), tx));
       ty = Math.min(0, Math.max(vh - (vh * scale), ty));
       
@@ -1165,7 +1161,6 @@
       state.currentX = tx; 
       state.currentY = ty;
       
-      // Применяем с задержкой, чтобы DOM успел перестроиться
       requestAnimationFrame(() => {
         world.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
       });
