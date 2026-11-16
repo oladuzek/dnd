@@ -143,11 +143,10 @@
   .map-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: transform 0.3s ease-out; transform-origin: 0 0; }
   .map-world.dragging { transition: none; }
   
-  /* Контейнер для карты: строго пропорционален картинке */
+  /* Контейнер для карты */
   #mapWrapper { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none; }
-  #mapImageContainer { position: relative; pointer-events: auto; max-width: 100%; max-height: 100%; }
-  
-  #mapBg { display: block; width: 100%; height: 100%; user-select: none; opacity: 0; transition: opacity 0.5s; filter: brightness(0.8) contrast(1.2); pointer-events: none; }
+  #mapImageContainer { position: relative; pointer-events: auto; }
+  #mapBg { display: block; width: 100%; height: 100%; user-select: none; opacity: 0; transition: opacity 0.5s; filter: brightness(0.8) contrast(1.2); pointer-events: none; object-fit: fill; }
   #drawCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
   #drawCanvas.active { pointer-events: auto; cursor: crosshair; }
 
@@ -155,7 +154,6 @@
   .pin-icon { font-size: 1.5rem; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle, rgba(42, 48, 56, 0.8) 0%, transparent 70%); box-shadow: 0 0 10px rgba(0,0,0,0.8); filter: drop-shadow(0 0 5px var(--accent-glow)); }
   .pin-icon img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid var(--iron-light); }
   
-  /* Исправлен label: теперь текст переносится */
   .pin-label { background: rgba(20, 24, 28, 0.95); color: var(--accent); padding: 3px 10px; font-family: var(--font-title); font-size: 0.8rem; border: 1px solid var(--iron-light); white-space: normal; text-align: center; max-width: 180px; word-wrap: break-word; margin-top: 4px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1); letter-spacing: 1px; }
 
   .quick-delete-city { position: absolute; top: -10px; right: -10px; background: var(--blood); color: #fff; border: 1px solid var(--iron-light); border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 30; font-family: var(--font-title); }
@@ -314,6 +312,11 @@
     .big-npc-info h3 { font-size: 1.1rem; }
     .big-npc-info p { font-size: 0.9rem; margin-bottom: 0.5rem; }
     
+    /* Уменьшаем иконки и подписи городов на телефонах */
+    .pin-icon { width: 24px; height: 24px; font-size: 1rem; box-shadow: 0 0 5px rgba(0,0,0,0.8); }
+    .pin-label { font-size: 0.65rem; padding: 2px 6px; margin-top: 2px; max-width: 120px; }
+    .quick-delete-city { width: 18px; height: 18px; font-size: 10px; top: -6px; right: -6px; }
+
     /* Перенос статуса подключения вниз, чтобы не мешал */
     #syncStatus { top: auto; bottom: 15px; right: 15px; font-size: 0.7rem; padding: 5px 10px; z-index: 100; }
     
@@ -980,30 +983,38 @@
     // Map Logic
     window.onMapLoaded = function() {
       if (!mapBg.naturalWidth) return;
-      const vw = viewport.clientWidth; const vh = viewport.clientHeight;
-      const imgW = mapBg.naturalWidth; const imgH = mapBg.naturalHeight;
+      const vw = viewport.clientWidth; 
+      const vh = viewport.clientHeight;
+      const imgW = mapBg.naturalWidth; 
+      const imgH = mapBg.naturalHeight;
       const imgRatio = imgW / imgH; 
       const boxRatio = vw / vh;
 
-      // Контейнер карты строго соответствует пропорциям картинки
+      // Задаем размеры в пикселях, чтобы мобильный браузер не искажал проценты
       if (imgRatio > boxRatio) {
-        // Карта шире экрана
-        mapImageContainer.style.width = '100%'; 
-        mapImageContainer.style.height = 'auto'; 
-        mapImageContainer.style.aspectRatio = `${imgW} / ${imgH}`;
+        mapImageContainer.style.width = vw + 'px'; 
+        mapImageContainer.style.height = (vw / imgRatio) + 'px'; 
       } else {
-        // Карта выше экрана
-        mapImageContainer.style.height = '100%'; 
-        mapImageContainer.style.width = 'auto'; 
-        mapImageContainer.style.aspectRatio = `${imgW} / ${imgH}`;
+        mapImageContainer.style.height = vh + 'px'; 
+        mapImageContainer.style.width = (vh * imgRatio) + 'px'; 
       }
+      
+      // Центрируем контейнер с картой в экране
+      mapImageContainer.style.position = 'absolute';
+      mapImageContainer.style.left = '50%';
+      mapImageContainer.style.top = '50%';
+      mapImageContainer.style.transform = 'translate(-50%, -50%)';
       
       // Сбрасываем зум
       world.style.transform = `translate(0px, 0px) scale(1)`;
       state.currentX = 0; state.currentY = 0; state.currentScale = 1;
 
       resizeCanvas();
-      renderPins(); 
+      
+      // Принудительно перерисовываем пины с небольшой задержкой
+      setTimeout(() => {
+        renderPins(); 
+      }, 50);
     };
 
     function resizeCanvas() {
@@ -1155,31 +1166,26 @@
       window._wheelTimeout = setTimeout(() => { world.classList.remove('dragging'); }, 150);
     }, { passive: false });
 
-    // ИСПРАВЛЕННЫЙ ЗУМ (теперь точно центрирует город)
+    // ИСПРАВЛЕННЫЙ ЗУМ
     function zoomToCity(city) {
       const vw = viewport.clientWidth; 
       const vh = viewport.clientHeight;
       const isMobile = window.innerWidth <= 768;
-      // Сдвиг для десктопа, чтобы учесть выезжающую панель справа (400px)
       const offsetX = isMobile ? 0 : 400; 
       const scale = 2.5;
       
       const rect = mapImageContainer.getBoundingClientRect();
       const viewportRect = viewport.getBoundingClientRect();
 
-      // Координаты города на экране
       const cityScreenX = rect.left + (city.x / 100) * rect.width;
       const cityScreenY = rect.top + (city.y / 100) * rect.height;
 
-      // Координаты города внутри "мира" (до применения зума)
       const cityWorldX = (cityScreenX - viewportRect.left - state.currentX) / state.currentScale;
       const cityWorldY = (cityScreenY - viewportRect.top - state.currentY) / state.currentScale;
 
-      // Целевые координаты (центр экрана за вычетом панели)
       const targetX = (vw - offsetX) / 2;
       const targetY = vh / 2;
 
-      // Новое смещение
       state.currentScale = scale;
       state.currentX = targetX - cityWorldX * scale;
       state.currentY = targetY - cityWorldY * scale;
@@ -1234,7 +1240,7 @@
           zoomToCity(city);
           if (window.innerWidth <= 768) desktopMenu.classList.remove('show');
         });
-        mapImageContainer.appendChild(pin); // Добавляем строго в контейнер карты!
+        mapImageContainer.appendChild(pin);
       });
     }
 
@@ -1330,7 +1336,6 @@
       });
     }
 
-    // ИСПРАВЛЕННЫЙ КЛИК (координаты берутся строго от картинки)
     viewport.addEventListener('click', (e) => {
       if (!state.isMasterMode || state.isDrawMode) return;
       if (e.target.closest('.city-pin') || e.target.closest('.city-panel') || e.target.closest('.controls')) return;
