@@ -150,13 +150,57 @@
   #drawCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
   #drawCanvas.active { pointer-events: auto; cursor: crosshair; }
 
-  .city-pin { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 10; pointer-events: auto; }
-  .pin-icon { font-size: 1.5rem; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle, rgba(42, 48, 56, 0.8) 0%, transparent 70%); box-shadow: 0 0 10px rgba(0,0,0,0.8); filter: drop-shadow(0 0 5px var(--accent-glow)); }
+  /* Иконка города - точка клика в центре */
+  .city-pin { 
+    position: absolute; 
+    width: 0; 
+    height: 0; 
+    z-index: 10; 
+    pointer-events: auto;
+  }
+  .pin-icon { 
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem; 
+    display: flex; align-items: center; justify-content: center; 
+    width: 36px; height: 36px; 
+    border-radius: 50%; 
+    background: radial-gradient(circle, rgba(42, 48, 56, 0.8) 0%, transparent 70%); 
+    box-shadow: 0 0 10px rgba(0,0,0,0.8); 
+    filter: drop-shadow(0 0 5px var(--accent-glow)); 
+    cursor: pointer;
+  }
   .pin-icon img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid var(--iron-light); }
   
-  .pin-label { background: rgba(20, 24, 28, 0.95); color: var(--accent); padding: 3px 10px; font-family: var(--font-title); font-size: 0.8rem; border: 1px solid var(--iron-light); white-space: normal; text-align: center; max-width: 180px; word-wrap: break-word; margin-top: 4px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1); letter-spacing: 1px; }
+  .pin-label { 
+    position: absolute;
+    left: 50%; top: calc(50% + 22px);
+    transform: translateX(-50%);
+    background: rgba(20, 24, 28, 0.95); 
+    color: var(--accent); 
+    padding: 3px 10px; 
+    font-family: var(--font-title); font-size: 0.8rem; 
+    border: 1px solid var(--iron-light); 
+    white-space: normal; text-align: center; 
+    max-width: 180px; word-wrap: break-word; 
+    border-radius: 4px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1); 
+    letter-spacing: 1px;
+    pointer-events: none;
+  }
 
-  .quick-delete-city { position: absolute; top: -10px; right: -10px; background: var(--blood); color: #fff; border: 1px solid var(--iron-light); border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 30; font-family: var(--font-title); }
+  .quick-delete-city { 
+    position: absolute; 
+    left: calc(50% + 12px); top: calc(50% - 22px); 
+    background: var(--blood); color: #fff; 
+    border: 1px solid var(--iron-light); 
+    border-radius: 50%; width: 24px; height: 24px; 
+    display: none; align-items: center; justify-content: center; 
+    font-size: 12px; font-weight: bold; cursor: pointer; 
+    box-shadow: 0 0 10px rgba(0,0,0,0.8); 
+    z-index: 30; font-family: var(--font-title);
+  }
   .city-pin:hover .quick-delete-city { display: flex; }
   .quick-delete-city:hover { background: var(--blood-light); box-shadow: 0 0 15px var(--blood); }
 
@@ -294,7 +338,7 @@
     .full-card-content { flex-direction: column; align-items: center; text-align: center; }
     .full-card-avatar { width: 150px; height: 150px; }
     .full-card-avatar span { font-size: 5rem; }
-    .city-panel { width: 100%; height: 80%; top: auto; bottom: 0; transform: translateY(100%); border-left: none; border-top: 2px solid var(--iron-light); border-radius: 20px 20px 0 0; z-index: 999; }
+    .city-panel { width: 100%; height: 60%; top: auto; bottom: 0; transform: translateY(100%); border-left: none; border-top: 2px solid var(--iron-light); border-radius: 20px 20px 0 0; z-index: 999; background: rgba(10, 11, 14, 0.92); backdrop-filter: blur(10px); }
     .city-panel.open { transform: translateY(0); }
     .desktop-menu { display: none; position: fixed; top: 70px; left: 15px; background: var(--panel-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--iron-light); box-shadow: 0 10px 30px rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 35; max-height: 80vh; overflow-y: auto; width: 240px; }
     .desktop-menu.show { display: flex; }
@@ -314,7 +358,7 @@
     .big-npc-info h3 { font-size: 1.1rem; }
     .big-npc-info p { font-size: 0.9rem; margin-bottom: 0.5rem; }
     
-    /* ЖЕСТКОЕ УМЕНЬШЕНИЕ ИКОНОК НА ТЕЛЕФОНЕ */
+    /* УМЕНЬШЕНИЕ ИКОНОК НА ТЕЛЕФОНЕ */
     .pin-icon { 
       width: 20px !important; 
       height: 20px !important; 
@@ -322,9 +366,9 @@
       box-shadow: none !important; 
     }
     .pin-label { 
+      top: calc(50% + 14px) !important;
       font-size: 8px !important; 
       padding: 1px 4px !important; 
-      margin-top: 1px !important; 
       max-width: 80px !important; 
       line-height: 1.1 !important;
       -webkit-text-size-adjust: none !important;
@@ -334,11 +378,12 @@
       width: 14px !important; 
       height: 14px !important; 
       font-size: 8px !important; 
-      top: -4px !important; 
-      right: -4px !important; 
+      left: calc(50% + 6px) !important; 
+      top: calc(50% - 12px) !important;
       -webkit-text-size-adjust: none !important;
       text-size-adjust: none !important;
     }
+    .close-btn { position: fixed; top: 10px; right: 10px; z-index: 2000; }
 
     #syncStatus { top: auto; bottom: 15px; right: 15px; font-size: 0.7rem; padding: 5px 10px; z-index: 100; }
     
