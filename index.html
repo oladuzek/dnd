@@ -185,6 +185,7 @@
   .delete-npc:hover { background: var(--blood); color: #fff; }
 
   .controls { position: absolute; left: 20px; top: 80px; display: flex; flex-direction: column; gap: 10px; z-index: 30; width: 220px; }
+  .mobile-top-btns { display: flex; gap: 10px; }
   .mobile-menu-btn { display: none; background: rgba(20, 24, 28, 0.9); border: 1px solid var(--iron-light); color: var(--accent); font-size: 1.5rem; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 40; }
   .desktop-menu { display: flex; flex-direction: column; gap: 10px; }
   
@@ -297,8 +298,9 @@
     .city-panel.open { transform: translateY(0); }
     .desktop-menu { display: none; position: fixed; top: 70px; left: 15px; background: var(--panel-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--iron-light); box-shadow: 0 10px 30px rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 35; max-height: 80vh; overflow-y: auto; width: 240px; }
     .desktop-menu.show { display: flex; }
-    .mobile-menu-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 15px; left: 15px; }
-    .controls { left: 15px; top: 75px; width: 240px; }
+    .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+    .controls { left: 15px; top: 15px; width: auto; }
+    .mobile-top-btns { position: absolute; top: 15px; left: 15px; z-index: 40; }
     .draw-controls { max-width: 100%; padding: 10px; }
     .modal { padding: 1.5rem 1rem; width: 95%; border-radius: 16px; }
     .modal-actions { flex-direction: column; gap: 10px; }
@@ -312,7 +314,7 @@
     .big-npc-info h3 { font-size: 1.1rem; }
     .big-npc-info p { font-size: 0.9rem; margin-bottom: 0.5rem; }
     
-        /* ЖЕСТКОЕ УМЕНЬШЕНИЕ ИКОНОК НА ТЕЛЕФОНЕ */
+    /* ЖЕСТКОЕ УМЕНЬШЕНИЕ ИКОНОК НА ТЕЛЕФОНЕ */
     .pin-icon { 
       width: 20px !important; 
       height: 20px !important; 
@@ -338,7 +340,6 @@
       text-size-adjust: none !important;
     }
 
-    /* Перенос статуса подключения вниз, чтобы не мешал */
     #syncStatus { top: auto; bottom: 15px; right: 15px; font-size: 0.7rem; padding: 5px 10px; z-index: 100; }
     
     #saveBgBtn { bottom: 60px; font-size: 0.9rem; padding: 0.6rem 1.2rem; width: auto; min-width: 80%; }
@@ -349,14 +350,12 @@
 
   <div class="particles" id="particles"></div>
 
-  <!-- ЭКРАН ВЫБОРА МИРА -->
   <div id="worldsScreen">
     <h1 class="worlds-title">Выберите мир</h1>
     <div class="worlds-grid" id="worldsGrid"></div>
     <button class="add-world-btn" id="btnCreateWorld">➕ Создать новый мир</button>
   </div>
 
-  <!-- ИНТЕРФЕЙС КАРТЫ -->
   <div id="mapInterface">
     <div class="top-bar">
       <div class="current-world-name" id="currentWorldName">Название мира</div>
@@ -402,8 +401,10 @@
     </div>
 
     <div class="controls">
-      <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
-      <button class="mobile-menu-btn" id="mobileResetBtn" style="display: none; margin-left: 10px;">⌖</button>
+      <div class="mobile-top-btns">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+        <button class="mobile-menu-btn" id="mobileResetBtn" style="display: none;">⌖</button>
+      </div>
       <div class="desktop-menu" id="desktopMenu">
         
         <div class="menu-group open">
@@ -470,9 +471,7 @@
 
   </div>
 
-  <!-- ВСЕ МОДАЛКИ ВЫНЕСЕНЫ СЮДА (НА УРОВЕНЬ BODY) -->
-
-  <!-- Модалка локации -->
+  <!-- МОДАЛКИ -->
   <div class="modal-overlay" id="modal">
     <div class="modal">
       <h2 id="modalTitle">Добавить локацию</h2>
@@ -507,7 +506,6 @@
     </div>
   </div>
 
-  <!-- Поиск -->
   <div class="modal-overlay" id="searchModal">
     <div class="modal">
       <h2>Поиск</h2>
@@ -517,7 +515,6 @@
     </div>
   </div>
 
-  <!-- Все NPC -->
   <div class="modal-overlay" id="allNpcModal">
     <div class="modal">
       <h2>Все NPC</h2>
@@ -527,7 +524,6 @@
     </div>
   </div>
 
-  <!-- Создание NPC -->
   <div class="modal-overlay" id="addGlobalNpcModal">
     <div class="modal">
       <h2>Создать NPC</h2>
@@ -549,7 +545,6 @@
     </div>
   </div>
 
-  <!-- Справочник -->
   <div class="modal-overlay" id="allItemsModal">
     <div class="modal">
       <h2>📚 Справочник</h2>
@@ -559,7 +554,6 @@
     </div>
   </div>
 
-  <!-- Создание предмета -->
   <div class="modal-overlay" id="addItemModal">
     <div class="modal">
       <h2>Создать предмет</h2>
@@ -581,7 +575,6 @@
     </div>
   </div>
 
-  <!-- Создание мира -->
   <div class="modal-overlay" id="createWorldModal">
     <div class="modal" style="width: 500px;">
       <h2>Создать новый мир</h2>
@@ -616,7 +609,6 @@
     </div>
   </div>
 
-  <!-- Описание мира -->
   <div class="modal-overlay" id="worldDescModal">
     <div class="modal" style="width: 800px;">
       <h2 id="worldDescTitle">История мира</h2>
@@ -951,18 +943,15 @@
       }
       resetZoom();
       
-      // АВТО-ЗУМ ДЛЯ ТЕЛЕФОНА (Масштаб 3x)
+      // АВТО-ЗУМ ДЛЯ ТЕЛЕФОНА
       if (window.innerWidth <= 768 && state.currentBgBase64) {
         setTimeout(() => {
           const vw = viewport.clientWidth;
           const vh = viewport.clientHeight;
           const scale = 3.0; 
-          
-          // Центрируем карту
           state.currentScale = scale;
           state.currentX = (vw - (vw * scale)) / 2; 
           state.currentY = (vh - (vh * scale)) / 2;
-          
           world.style.transform = `translate(${state.currentX}px, ${state.currentY}px) scale(${scale})`;
         }, 100);
       }
